@@ -1,31 +1,77 @@
 //test.cpp
-
 #include <iostream>
 #include "BPlusTree.h"
 
 using namespace std;
 
+void insertTest();
+void randomInsertTest();
+
 int main() {
-    BPlusTree<int, int> tree(4);
+    BPlusTree<int, int> tree(4); // TODO 度数为4的B+树有问题
     tree.insert(1, 1);
+    tree.print();
     tree.insert(2, 2);
+    tree.print();
     tree.insert(3, 3);
+    tree.print();
     tree.insert(4, 4);
+    tree.print();
     tree.insert(5, 5);
+    tree.print();
     tree.insert(6, 6);
+    tree.print();
     tree.insert(7, 7);
+    tree.print();
     tree.insert(8, 8);
+    tree.print();
     tree.insert(9, 9);
+    tree.print();
     tree.insert(10, 10);
-    tree.insert(11, 11);
-    tree.insert(12, 12);
-    tree.insert(13, 13);
-    tree.insert(14, 14);
-    tree.insert(15, 15);
-    tree.insert(16, 16);
-    tree.insert(17, 17);
-    tree.insert(18, 18);
-    tree.insert(19, 19);
+    tree.print();
+    tree.remove(10);
+    tree.print();
+    tree.remove(9);
+    tree.print();
+    tree.remove(8);
+    tree.print();
+    tree.remove(7);
+    tree.print();
+    tree.remove(1);
+    tree.print();
+    tree.remove(2);
+    tree.print();
+    tree.remove(4);
+    tree.print();
+    tree.remove(3);
+    tree.print();
+    tree.remove(5);
+    tree.print();
+    tree.remove(6);
+    // tree.print();
+
+
+    // tree.remove(6);
+    // tree.print();
+    // tree.remove(5);
+    // tree.print();
+    // tree.remove(4);
+    // tree.print();
+    // tree.remove(3);
+    // tree.print();
+    // tree.remove(2);
+    // tree.print();
+    // tree.remove(1);
+    // tree.print();
+    // tree.insert(11, 11);
+    // tree.insert(12, 12);
+    // tree.insert(13, 13);
+    // tree.insert(14, 14);
+    // tree.insert(15, 15);
+    // tree.insert(16, 16);
+    // tree.insert(17, 17);
+    // tree.insert(18, 18);
+    // tree.insert(19, 19);
     // tree.insert(20, 20);
     // tree.insert(21, 21);
     // tree.insert(22, 22);
@@ -62,5 +108,93 @@ int main() {
     // tree.insert(53, 53);
     // tree.insert(54, 54);
 
+    // tree.print();
+
+    // randomInsertTest();
+}
+
+void insertTest() {
+    BPlusTree<int, int> tree(3);
+    tree.insert(1, 1);
     tree.print();
+    tree.insert(2, 2);
+    tree.print();
+    tree.insert(3, 3);
+    tree.print();
+    tree.insert(4, 4);
+    tree.print();
+    tree.insert(5, 5);
+    tree.print();
+    tree.insert(6, 6);
+    tree.print();
+    tree.insert(7, 7);
+    tree.print();
+    tree.insert(8, 8);
+    tree.print();
+    tree.insert(9, 9);
+    tree.print();
+    tree.insert(10, 10);
+    tree.print();
+}
+
+void randomInsertTest() {
+    BPlusTree<int, int> tree(3);
+    tree.insert(1, 1);
+    tree.print();
+    tree.insert(5, 2);
+    tree.print();
+    tree.insert(9, 3);
+    tree.print();
+    tree.insert(4, 4);
+    tree.print();
+    tree.insert(43, 5);
+    tree.print();
+    tree.insert(6, 6);
+    tree.print();
+    tree.insert(7, 7);
+    tree.print();
+    tree.insert(14, 8);
+    tree.print();
+    tree.insert(22, 9);
+    tree.print();
+    tree.insert(10, 10);
+    tree.print();
+    // tree.insert(11, 11);
+    // tree.print();
+    // tree.insert(12, 12);
+    // tree.print();
+    // tree.insert(10, 13);
+    // tree.print();
+    // tree.insert(14, 14);
+    // tree.print();
+    // tree.insert(15, 15);
+    // tree.print();
+    // tree.insert(16, 16);
+    // tree.print();
+    // tree.insert(17, 17);
+    // tree.print();
+    // tree.insert(18, 18);
+    // tree.print();
+    // tree.insert(19, 19);
+    // tree.print();
+    // tree.insert(32, 20);
+    // tree.print();
+    // tree.insert(21, 21);
+    // tree.print();
+    // tree.insert(22, 22);
+    // tree.print();
+    // tree.insert(23, 23);
+    // tree.print();
+    // tree.insert(2, 24);
+    // tree.print();
+    // tree.insert(25, 25);
+    // tree.print();
+    // tree.insert(6, 26);
+    // tree.print();
+    // tree.insert(27, 27);
+    // tree.print();
+    // tree.insert(14, 28);
+    // tree.print();
+    // tree.insert(29, 29);
+    // tree.print();
 }

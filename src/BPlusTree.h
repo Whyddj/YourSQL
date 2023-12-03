@@ -1,3 +1,10 @@
+/**
+ * @file BPlusTree.h
+ * @brief B+树
+ * @version 1.0
+ * @date 2023-12-3
+ * @note 奇数节点分裂时
+*/
 #include <vector>
 #include <iostream>
 
@@ -9,7 +16,8 @@ public:
         this->root = new Node(true);
     }
     ~BPlusTree() {
-        delete this->root;
+        removeAll();
+        delete root;
     }
 
     void insert(key_t key, value_t value) {
@@ -18,7 +26,7 @@ public:
         // 找到叶子节点
         while (!node->is_leaf) {
             int i = 0;
-            while (i < node->size && key >= node->keys[i]) {
+            while (i < node->size && key > node->keys[i]) {
                 i++;
             }
             node = node->children[i];
@@ -36,7 +44,190 @@ public:
             this->split(node);
         }
     }
-    void remove(key_t key);
+
+    void remove(key_t key) {
+        Node *leaf = find_leaf(key);
+
+        remove_from_leaf(leaf, key);
+
+        if (leaf == root && leaf->size == 0) {
+            return;
+        }
+
+        if (leaf->size >= degree / 2) {
+            return;
+        }
+
+        int i = 0;
+        while (i < leaf->parent->size + 1 && leaf->parent->children[i] != leaf) {
+            i++;
+        }
+        if (i > 0 && leaf->parent->children[i - 1]->size > degree / 2) {
+            borrow_from_left_leaf(leaf, i);
+        }
+        else if (i + 1 < leaf->parent->size + 1 && leaf->parent->children[i + 1]->size > degree / 2) {
+            borrow_from_right_leaf(leaf, i);
+        }
+        else {
+            if (i > 0) {
+                merge_leaf(leaf->parent->children[i - 1], leaf, i - 1);
+            }
+            else {
+                merge_leaf(leaf, leaf->parent->children[i + 1], i);
+            }
+        }
+        
+        // if (leaf->parent == root && leaf->parent->size == 0) {
+        //     root = leaf->parent->children[0];
+        //     delete leaf->parent;
+        // }
+        if (leaf->parent == root) {
+            if (leaf->parent->size == 0) {
+                root = leaf->parent->children[0];
+                delete leaf->parent;
+            } else return;
+        }
+        else if (leaf->parent->size + 1 < (degree + 1) / 2) {
+            adjust(leaf->parent);
+        }
+
+    }
+
+    void removeAll(){
+        Node* node = this->root;
+        while (!node->is_leaf) {
+            node = node->children[0];
+        }
+        while (node != nullptr) {
+            Node* next = node->next;
+            delete node;
+            node = next;
+        }
+        this->root = new Node(true);
+    }
+/**
+    void remove(key_t key) {
+        Node* node = this->root;
+
+        // 找到叶子节点
+        while (!node->is_leaf) {
+            int i = 0;
+            while (i < node->size && key > node->keys[i]) {
+                i++;
+            }
+            node = node->children[i];
+        }
+        // 如果key不在叶子节点中，抛出异常
+        if (node->keys[node->size - 1] < key || node->keys[0] > key) {
+            throw "Key not found";
+        }
+        // 删除key
+        int i = 0;
+        while (i < node->size && key >= node->keys[i]) {
+            i++;
+        }
+        node->keys.erase(node->keys.begin() + i);
+        if (node->is_leaf) {
+        node->values.erase(node->values.begin() + i);
+        }
+        node->size--;
+        // 如果node的大小小于阶数的一半，需要从兄弟节点借一个key或者合并
+        if (node->size < this->degree / 2) {
+            Node* parent = node->parent;
+            int i = 0;
+            while (i < parent->size && parent->children[i] != node) {
+                i++;
+            }
+            // 尝试从左兄弟节点借一个key
+            if (i > 0 && parent->children[i - 1]->size > this->degree / 2) {
+                Node* sibling = parent->children[i - 1];
+                node->keys.insert(node->keys.begin(), sibling->keys[sibling->size - 1]);
+                if (node->is_leaf) {
+                    node->values.insert(node->values.begin(), sibling->values[sibling->size - 1]);
+                }
+                node->size++;
+                sibling->keys.erase(sibling->keys.end() - 1);
+                if (node->is_leaf) {
+                    sibling->values.erase(sibling->values.end() - 1);
+                }
+                sibling->size--;
+                parent->keys[i - 1] = sibling->keys[sibling->size - 1];
+            }
+            // 尝试从右兄弟节点借一个key
+            else if (i + 1 < parent->size && parent->children[i + 1]->size > this->degree / 2) {
+                Node* sibling = parent->children[i + 1];
+                node->keys.insert(node->keys.end(), sibling->keys[0]);
+                if (node->is_leaf) {
+                    node->values.insert(node->values.end(), sibling->values[0]);
+                }
+                node->size++;
+                sibling->keys.erase(sibling->keys.begin());
+                if (node->is_leaf) {
+                    sibling->values.erase(sibling->values.begin());
+                }
+                sibling->size--;
+                parent->keys[i] = node->keys[node->size - 1];
+            }
+            // 无法从兄弟节点借一个key，只能合并
+            else {
+                if (i > 0) { // 与左兄弟节点合并
+                    Node* sibling = parent->children[i - 1];
+                    sibling->keys.insert(sibling->keys.end(), node->keys.begin(), node->keys.end());
+                    if (node->is_leaf) {
+                        sibling->values.insert(sibling->values.end(), node->values.begin(), node->values.end());
+                    }
+                    if (!node->is_leaf) { // 如果node不是叶子节点，还需要将node的子节点移动到sibling中
+                        sibling->children.insert(sibling->children.end(), node->children.begin(), node->children.end());
+                        for (int j = 0; j < sibling->children.size(); j++) {
+                            sibling->children[j]->parent = sibling;
+                        }
+                    }
+                    sibling->size += node->size;
+                    sibling->next = node->next;
+                    if (node->next != nullptr) {
+                        node->next->prev = sibling;
+                    }
+                    parent->keys.erase(parent->keys.begin() + i - 1);
+                    parent->children.erase(parent->children.begin() + i);
+                    parent->size--;
+                    delete node;
+                    node = sibling;
+                }
+                else { // 与右兄弟节点合并
+                    Node* sibling = parent->children[i + 1];
+                    node->keys.insert(node->keys.end(), sibling->keys.begin(), sibling->keys.end());
+                    if (node->is_leaf) {
+                        node->values.insert(node->values.end(), sibling->values.begin(), sibling->values.end());
+                    }
+                    if (!node->is_leaf) { // 如果node不是叶子节点，还需要将sibling的子节点移动到node中
+                        node->children.insert(node->children.end(), sibling->children.begin(), sibling->children.end());
+                        for (int j = 0; j < node->children.size(); j++) {
+                            node->children[j]->parent = node;
+                        }
+                    }
+                    node->size += sibling->size;
+                    node->next = sibling->next;
+                    if (sibling->next != nullptr) {
+                        sibling->next->prev = node;
+                    }
+                    parent->keys.erase(parent->keys.begin() + i);
+                    parent->children.erase(parent->children.begin() + i + 1);
+                    parent->size--;
+                    delete sibling;
+                }
+                if (this->root->size == 0) { // 如果parent是根节点
+                    this->root = node;
+                    node->parent = nullptr;
+                    delete parent;
+                }
+                else if (parent->size < this->degree / 2) {
+                    this->remove(parent->keys[0]);
+                }
+            }
+        }
+    }
+    */
+
     value_t search(key_t key);
 
     void print() {
@@ -70,6 +261,7 @@ public:
             nodes = next_nodes;
             level++; // 增加层级
         }
+        std::cout << std::endl;
     }
 
 
@@ -92,9 +284,6 @@ private:
             this->prev = nullptr;
         }
         ~Node() {
-            for (int i = 0; i < this->children.size(); i++) {
-                delete this->children[i];
-            }
         }
     };
 
@@ -107,11 +296,15 @@ private:
 
         // 将node的后一半key和value移动到sibling中 
         sibling->keys.insert(sibling->keys.begin(), node->keys.end() - node->size / 2, node->keys.end());
-        sibling->values.insert(sibling->values.begin(), node->values.end() - node->size / 2, node->values.end());
+        if (node->is_leaf) {
+            sibling->values.insert(sibling->values.begin(), node->values.end() - node->size / 2, node->values.end());
+        }
         sibling->size = node->size / 2;
         node->size -= sibling->size;
         node->keys.erase(node->keys.end() - sibling->size, node->keys.end());
-        node->values.erase(node->values.end() - sibling->size, node->values.end());
+        if (node->is_leaf) {
+            node->values.erase(node->values.end() - sibling->size, node->values.end());
+        }
 
         // 如果node是叶子节点，还需要处理next和prev指针
         if (node->is_leaf) {
@@ -137,14 +330,21 @@ private:
             parent = new Node();
             this->root = parent;
             parent->children.push_back(node);
+            node->parent = parent;
+
         }
         int i = 0;
         while (i < parent->size && node->keys[node->size - 1] >= parent->keys[i]) {
             i++;
         }
         parent->keys.insert(parent->keys.begin() + i, node->keys[node->size - 1]);
-        parent->values.insert(parent->values.begin() + i, node->values[node->size - 1]);
+        // parent->values.insert(parent->values.begin() + i, node->values[node->size - 1]);
         parent->size++;
+        // 如果node不是叶子节点，还需要将最后一个键值对从node中删除
+        if (!node->is_leaf) {
+            node->keys.pop_back();
+            node->size--;
+        }
 
         // 将sibling插入到parent中
         parent->children.insert(parent->children.begin() + i + 1, sibling);
@@ -156,4 +356,142 @@ private:
         }
     }
     
+    Node* find_leaf(key_t key) {
+        Node* node = this->root;
+        // 找到叶子节点
+        while (!node->is_leaf) {
+            int i = 0;
+            while (i < node->size && key > node->keys[i]) {
+                i++;
+            }
+            node = node->children[i];
+        }
+        // 如果key不在叶子节点中，抛出异常
+        if (node->keys[node->size - 1] < key || node->keys[0] > key) {
+            throw "Key not found";
+        }
+        return node;
+    }
+
+    void remove_from_leaf(Node* leaf, key_t key) {
+        int i = 0;
+        while (i < leaf->size && key > leaf->keys[i]) {
+            i++;
+        }
+        leaf->keys.erase(leaf->keys.begin() + i);
+        leaf->values.erase(leaf->values.begin() + i);
+        leaf->size--;
+    }
+
+    void borrow_from_left_leaf(Node* leaf, int i) {
+        Node* sibling = leaf->parent->children[i - 1];
+        leaf->keys.insert(leaf->keys.begin(), sibling->keys[sibling->size - 1]);
+        leaf->values.insert(leaf->values.begin(), sibling->values[sibling->size - 1]);
+        leaf->size++;
+        sibling->keys.erase(sibling->keys.end() - 1);
+        sibling->values.erase(sibling->values.end() - 1);
+        sibling->size--;
+        leaf->parent->keys[i - 1] = sibling->keys[sibling->size - 1];
+    }
+
+    void borrow_from_right_leaf(Node* leaf, int i) {
+        Node* sibling = leaf->parent->children[i + 1];
+        leaf->keys.insert(leaf->keys.end(), sibling->keys[0]);
+        leaf->values.insert(leaf->values.end(), sibling->values[0]);
+        leaf->size++;
+        sibling->keys.erase(sibling->keys.begin());
+        sibling->values.erase(sibling->values.begin());
+        sibling->size--;
+        leaf->parent->keys[i] = leaf->keys[leaf->size - 1];
+    }
+
+    void merge_leaf(Node* left, Node* right, int i) {
+        left->keys.insert(left->keys.end(), right->keys.begin(), right->keys.end());
+        left->values.insert(left->values.end(), right->values.begin(), right->values.end());
+        left->size += right->size;
+        left->next = right->next;
+        if (right->next != nullptr) {
+            right->next->prev = left;
+        }
+        left->parent->keys.erase(left->parent->keys.begin() + i);
+        left->parent->children.erase(left->parent->children.begin() + i + 1);
+        left->parent->size--;
+        delete right;
+    }
+
+    // 调整非叶子节点
+    void adjust(Node* node) {
+        int i = 0;
+        while (i < node->parent->size + 1 && node->parent->children[i] != node) {
+            i++;
+        }
+        if (i > 0 && node->parent->children[i - 1]->size + 1 > (degree + 1) / 2) {
+            borrow_from_left(node, i);
+        }
+        else if (i + 1 < node->parent->size + 1 && node->parent->children[i + 1]->size + 1 > (degree + 1) / 2) {
+            borrow_from_right(node, i);
+        }
+        else {
+            if (i > 0) {
+                merge(node->parent->children[i - 1], node, i); // 合并到左兄弟节点
+            }
+            else {
+                merge(node, node->parent->children[i + 1], i);
+            }
+        }
+        
+        if (node->parent == root) {
+            if (node->parent->size == 0) {
+                root = node->parent->children[0];
+                delete node->parent;
+            } else return;
+        }
+        else if (node->parent->size + 1 < (degree + 1) / 2) {
+            adjust(node->parent);
+        }
+    }
+
+    // 非叶子节点从左兄弟节点借一个key
+    void borrow_from_left(Node* node, int i) {
+        Node* sibling = node->parent->children[i - 1];
+        node->keys.insert(node->keys.begin(), node->parent->keys[i - 1]);
+        node->size++;
+        node->parent->keys[i - 1] = sibling->keys[sibling->size - 1];
+        sibling->keys.erase(sibling->keys.end() - 1);
+        sibling->size--;
+        
+        node->children.insert(node->children.begin(), sibling->children[sibling->size]);
+        node->children[0]->parent = node;
+        sibling->children.erase(sibling->children.end() - 1);
+    }
+
+    // 非叶子节点从右兄弟节点借一个key
+    void borrow_from_right(Node* node, int i) {
+        Node* sibling = node->parent->children[i + 1];
+        node->keys.insert(node->keys.end(), node->parent->keys[i]);
+        node->size++;
+        node->parent->keys[i] = sibling->keys[0];
+        sibling->keys.erase(sibling->keys.begin());
+        sibling->size--;
+        
+        node->children.insert(node->children.end(), sibling->children[0]);
+        node->children[node->size]->parent = node;
+        sibling->children.erase(sibling->children.begin());
+    }
+
+    // 非叶子节点合并 right合并到left
+    void merge(Node* left, Node* right, int i) {
+        left->keys.insert(left->keys.end(), left->children[left->size]->keys.back()); // 将子节点的最后一个key插入到left中
+        left->size++;
+        left->keys.insert(left->keys.end(), right->keys.begin(), right->keys.end());
+        left->children.insert(left->children.end(), right->children.begin(), right->children.end());
+        for (int j = left->size; j < left->children.size(); j++) {
+            left->children[j]->parent = left;
+        }
+        left->size += right->size;
+        left->parent->keys.erase(left->parent->keys.begin() + i);
+        left->parent->children.erase(left->parent->children.begin() + i + 1);
+        left->parent->size--;
+        delete right;
+    }
 };
