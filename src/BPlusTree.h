@@ -1,31 +1,42 @@
 /**
  * @file BPlusTree.h
- * @brief B+树
- * @version 1.0
+ * @author why
+ * @brief B+树的实现
+ * @version 0.1
  * @date 2023-12-3
-*/
+ *
+ *
+ */
+
+
+
 #include <vector>
 #include <iostream>
 
+/**
+ * @brief B+树的实现
+*/
 template <typename key_t, typename value_t>
 class BPlusTree {
 public:
-    BPlusTree(int degree) {
-        if (degree < 3) {
+    static constexpr int min_degree = 3; // 最小阶数
+
+    /**
+     * @brief B+树默认构造函数
+    */
+    BPlusTree(int degree) : degree(degree), root(new Node(true)) {
+        if (degree < min_degree) {
             throw std::invalid_argument("Degree must be greater than 2");
         }
-        this->degree = degree;
-        this->root = new Node(true);
     }
-    // 有参构造函数 
-    BPlusTree(int degree, std::initializer_list<std::pair<const key_t, value_t>> items) {
-        if (degree < 3) {
-            throw std::invalid_argument("Degree must be greater than 2");
-        }
-        this->degree = degree;
-        this->root = new Node(true);
-        for (const auto& item : items) {
-            this->insert(item.first, item.second);
+    
+    /**
+     * @brief B+树带有初始化列表的构造函数
+    */
+    BPlusTree(int degree, std::initializer_list<std::pair<const key_t, value_t>> items) 
+        : BPlusTree(degree) {
+        for (const auto& [key, value] : items) { // C++17的结构化绑定
+            this->insert(key, value);
         }
     }
 
@@ -34,6 +45,9 @@ public:
         delete root;
     }
 
+    /**
+     * @brief 向B+树中插入一个键值对
+    */
     void insert(key_t key, value_t value) {
         Node* node = this->root;
 
@@ -59,8 +73,11 @@ public:
         }
     }
 
+    /**
+     * @brief 从B+树中删除一个键值对
+    */
     void remove(key_t key) {
-        Node *leaf = find_leaf(key);
+        auto leaf = find_leaf(key);
 
         remove_from_leaf(leaf, key);
 
@@ -77,16 +94,19 @@ public:
         while (i < leaf->parent->size + 1 && leaf->parent->children[i] != leaf) {
             i++;
         }
+        // 如果左兄弟节点的大小大于阶数的一半，从左兄弟节点借一个key
         if (i > 0 && leaf->parent->children[i - 1]->size > degree / 2) {
             borrow_from_left_leaf(leaf, i);
         }
+        // 如果右兄弟节点的大小大于阶数的一半，从右兄弟节点借一个key
         else if (i + 1 < leaf->parent->size + 1 && leaf->parent->children[i + 1]->size > degree / 2) {
             borrow_from_right_leaf(leaf, i);
         }
+        // 否则合并
         else {
             if (i > 0) {
                 // 防止 heap-use-after-free
-                Node* sibling = leaf->parent->children[i - 1];
+                auto sibling = leaf->parent->children[i - 1];
                 merge_leaf(sibling, leaf, i - 1);
                 leaf = sibling;
             }
@@ -107,21 +127,27 @@ public:
 
     }
 
+    /**
+     * @brief 从B+树中删除所有键值对
+    */
     void removeAll(){
-        Node* node = this->root;
+        auto node = this->root;
         while (!node->is_leaf) {
             node = node->children[0];
         }
-        while (node != nullptr) {
-            Node* next = node->next;
+        while (node) {
+            auto next = node->next;
             delete node;
             node = next;
         }
         this->root = new Node(true);
     }
 
-    value_t search(key_t key) {
-        Node* node = find_leaf(key);
+    /**
+     * @brief 从B+树中查找一个键值对
+    */
+    value_t search(const key_t& key) {
+        auto node = find_leaf(key);
         int i = 0;
         while (i < node->size && key > node->keys[i]) {
             i++;
@@ -134,6 +160,9 @@ public:
         return node->values[i];
     }
 
+    /**
+     * @brief 打印B+树的结构
+    */
     void print() {
         std::vector<Node*> nodes;
         nodes.push_back(this->root);
@@ -170,44 +199,39 @@ public:
 
 
 private:
+    /**
+     * @brief B+树的节点定义
+    */
     struct Node {
-        bool is_leaf; // 是否是叶子节点
-        int size;   // 当前节点的大小, 即当前节点有多少个key
+        bool is_leaf = false; // 是否是叶子节点
+        int size = 0;   // 当前节点的大小, 即当前节点有多少个key
         std::vector<key_t> keys; // 当前节点的key
         std::vector<value_t> values; // 当前节点的value, 只有叶子节点才有
         std::vector<Node*> children; // 当前节点的子节点
-        Node* parent; // 当前节点的父节点
-        Node* next; // 当前节点的下一个节点，只有叶子节点才有
-        Node* prev; // 当前节点的上一个节点，只有叶子节点才有
+        Node* parent = nullptr; // 当前节点的父节点
+        Node* next = nullptr; // 当前节点的下一个节点，只有叶子节点才有
+        Node* prev = nullptr; // 当前节点的上一个节点，只有叶子节点才有
 
-        Node(bool is_leaf = false){
-            this->is_leaf = is_leaf;
-            this->size = 0;
-            this->parent = nullptr;
-            this->next = nullptr;
-            this->prev = nullptr;
-        }
-        ~Node() {
-        }
+        explicit Node(bool isLeaf = false) : is_leaf(isLeaf) {} // explicit关键字防止隐式转换
     };
 
     Node* root;
     int degree; // B+树的阶数，即一个节点最多有多少个子节点
 
     void split(Node* node){
-        Node* parent = node->parent;
-        Node* sibling = new Node(node->is_leaf);
+        auto parent = node->parent;
+        auto sibling = new Node(node->is_leaf);
 
         // 将node的后一半key和value移动到sibling中 
-        sibling->keys.insert(sibling->keys.begin(), node->keys.end() - node->size / 2, node->keys.end());
+        sibling->keys.assign(node->keys.end() - node->size / 2, node->keys.end());
         if (node->is_leaf) {
-            sibling->values.insert(sibling->values.begin(), node->values.end() - node->size / 2, node->values.end());
+            sibling->values.assign(node->values.end() - node->size / 2, node->values.end());
         }
         sibling->size = node->size / 2;
         node->size -= sibling->size;
-        node->keys.erase(node->keys.end() - sibling->size, node->keys.end());
+        node->keys.resize(node->size);
         if (node->is_leaf) {
-            node->values.erase(node->values.end() - sibling->size, node->values.end());
+            node->values.resize(node->size);
         }
 
         // 如果node是叶子节点，还需要处理next和prev指针
@@ -222,21 +246,21 @@ private:
 
         // 将node的后一半children移动到sibling中
         if (!node->is_leaf) {
-            sibling->children.insert(sibling->children.begin(), node->children.begin() + node->size, node->children.end());
-            for (int i = 0; i < sibling->children.size(); i++) {
-                sibling->children[i]->parent = sibling;
+            sibling->children.assign(node->children.begin() + node->size, node->children.end());
+            for (auto& child : sibling->children) {
+                child->parent = sibling;
             }
-            node->children.erase(node->children.begin() + node->size, node->children.end());
+            node->children.resize(node->size);
         }
 
         // 将node的中间key和value插入到parent中
-        if (parent == nullptr || node == this->root) { // 如果node是根节点
+        if (!parent || node == this->root) { // 如果node是根节点
             parent = new Node();
             this->root = parent;
             parent->children.push_back(node);
             node->parent = parent;
-
         }
+
         int i = 0;
         while (i < parent->size && node->keys[node->size - 1] >= parent->keys[i]) {
             i++;
@@ -261,7 +285,7 @@ private:
     }
     
     Node* find_leaf(key_t key) {
-        Node* node = this->root;
+        auto node = this->root;
         // 找到叶子节点
         while (!node->is_leaf) {
             int i = 0;
@@ -277,18 +301,23 @@ private:
         return node;
     }
 
-    void remove_from_leaf(Node* leaf, key_t key) {
+    // 从叶子节点中删除key
+    void remove_from_leaf(Node* leaf, const key_t& key) {
         int i = 0;
         while (i < leaf->size && key > leaf->keys[i]) {
             i++;
+        }
+        if (leaf->keys[i] != key) {
+            throw std::invalid_argument("Key not found in leaf");
         }
         leaf->keys.erase(leaf->keys.begin() + i);
         leaf->values.erase(leaf->values.begin() + i);
         leaf->size--;
     }
 
+    // 叶子节点从左兄弟节点借一个key
     void borrow_from_left_leaf(Node* leaf, int i) {
-        Node* sibling = leaf->parent->children[i - 1];
+        auto sibling = leaf->parent->children[i - 1];
         leaf->keys.insert(leaf->keys.begin(), sibling->keys[sibling->size - 1]);
         leaf->values.insert(leaf->values.begin(), sibling->values[sibling->size - 1]);
         leaf->size++;
@@ -298,8 +327,9 @@ private:
         leaf->parent->keys[i - 1] = sibling->keys[sibling->size - 1];
     }
 
+    // 叶子节点从右兄弟节点借一个key
     void borrow_from_right_leaf(Node* leaf, int i) {
-        Node* sibling = leaf->parent->children[i + 1];
+        auto sibling = leaf->parent->children[i + 1];
         leaf->keys.insert(leaf->keys.end(), sibling->keys[0]);
         leaf->values.insert(leaf->values.end(), sibling->values[0]);
         leaf->size++;
@@ -309,6 +339,7 @@ private:
         leaf->parent->keys[i] = leaf->keys[leaf->size - 1];
     }
 
+    // 叶子节点合并 right合并到left
     void merge_leaf(Node* left, Node* right, int i) {
         left->keys.insert(left->keys.end(), right->keys.begin(), right->keys.end());
         left->values.insert(left->values.end(), right->values.begin(), right->values.end());
@@ -359,7 +390,7 @@ private:
 
     // 非叶子节点从左兄弟节点借一个key
     void borrow_from_left(Node* node, int i) {
-        Node* sibling = node->parent->children[i - 1];
+        auto sibling = node->parent->children[i - 1];
         node->keys.insert(node->keys.begin(), node->parent->keys[i - 1]);
         node->size++;
         node->parent->keys[i - 1] = sibling->keys[sibling->size - 1];
@@ -373,7 +404,7 @@ private:
 
     // 非叶子节点从右兄弟节点借一个key
     void borrow_from_right(Node* node, int i) {
-        Node* sibling = node->parent->children[i + 1];
+        auto sibling = node->parent->children[i + 1];
         node->keys.insert(node->keys.end(), node->parent->keys[i]);
         node->size++;
         node->parent->keys[i] = sibling->keys[0];
@@ -391,8 +422,10 @@ private:
         left->size++;
         left->keys.insert(left->keys.end(), right->keys.begin(), right->keys.end());
         left->children.insert(left->children.end(), right->children.begin(), right->children.end());
-        for (int j = left->size; j < left->children.size(); j++) {
-            left->children[j]->parent = left;
+        for (auto& child : left->children) {
+            if (child) {
+                child->parent = left;
+            }
         }
         left->size += right->size;
         left->parent->keys.erase(left->parent->keys.begin() + i);
