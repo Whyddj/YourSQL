@@ -3,7 +3,6 @@
  * @brief B+树
  * @version 1.0
  * @date 2023-12-3
- * @note 奇数节点分裂时
 */
 #include <vector>
 #include <iostream>
@@ -12,11 +11,26 @@ template <typename key_t, typename value_t>
 class BPlusTree {
 public:
     BPlusTree(int degree) {
+        if (degree < 3) {
+            throw std::invalid_argument("Degree must be greater than 2");
+        }
         this->degree = degree;
         this->root = new Node(true);
     }
+    // 有参构造函数 
+    BPlusTree(int degree, std::initializer_list<std::pair<const key_t, value_t>> items) {
+        if (degree < 3) {
+            throw std::invalid_argument("Degree must be greater than 2");
+        }
+        this->degree = degree;
+        this->root = new Node(true);
+        for (const auto& item : items) {
+            this->insert(item.first, item.second);
+        }
+    }
+
     ~BPlusTree() {
-        removeAll();
+        // removeAll();
         delete root;
     }
 
@@ -50,7 +64,8 @@ public:
 
         remove_from_leaf(leaf, key);
 
-        if (leaf == root && leaf->size == 0) {
+        // 如果是根节点，直接返回
+        if (leaf == root) {
             return;
         }
 
@@ -70,17 +85,16 @@ public:
         }
         else {
             if (i > 0) {
-                merge_leaf(leaf->parent->children[i - 1], leaf, i - 1);
+                // 防止 heap-use-after-free
+                Node* sibling = leaf->parent->children[i - 1];
+                merge_leaf(sibling, leaf, i - 1);
+                leaf = sibling;
             }
             else {
                 merge_leaf(leaf, leaf->parent->children[i + 1], i);
             }
         }
-        
-        // if (leaf->parent == root && leaf->parent->size == 0) {
-        //     root = leaf->parent->children[0];
-        //     delete leaf->parent;
-        // }
+
         if (leaf->parent == root) {
             if (leaf->parent->size == 0) {
                 root = leaf->parent->children[0];
@@ -105,130 +119,20 @@ public:
         }
         this->root = new Node(true);
     }
-/**
-    void remove(key_t key) {
-        Node* node = this->root;
 
-        // 找到叶子节点
-        while (!node->is_leaf) {
-            int i = 0;
-            while (i < node->size && key > node->keys[i]) {
-                i++;
-            }
-            node = node->children[i];
-        }
-        // 如果key不在叶子节点中，抛出异常
-        if (node->keys[node->size - 1] < key || node->keys[0] > key) {
-            throw "Key not found";
-        }
-        // 删除key
+    value_t search(key_t key) {
+        Node* node = find_leaf(key);
         int i = 0;
-        while (i < node->size && key >= node->keys[i]) {
+        while (i < node->size && key > node->keys[i]) {
             i++;
         }
-        node->keys.erase(node->keys.begin() + i);
-        if (node->is_leaf) {
-        node->values.erase(node->values.begin() + i);
+        if (node->keys[i] != key) {
+            // throw "Key not found";
+            // return nullptr;
+            throw std::invalid_argument("Key not found");
         }
-        node->size--;
-        // 如果node的大小小于阶数的一半，需要从兄弟节点借一个key或者合并
-        if (node->size < this->degree / 2) {
-            Node* parent = node->parent;
-            int i = 0;
-            while (i < parent->size && parent->children[i] != node) {
-                i++;
-            }
-            // 尝试从左兄弟节点借一个key
-            if (i > 0 && parent->children[i - 1]->size > this->degree / 2) {
-                Node* sibling = parent->children[i - 1];
-                node->keys.insert(node->keys.begin(), sibling->keys[sibling->size - 1]);
-                if (node->is_leaf) {
-                    node->values.insert(node->values.begin(), sibling->values[sibling->size - 1]);
-                }
-                node->size++;
-                sibling->keys.erase(sibling->keys.end() - 1);
-                if (node->is_leaf) {
-                    sibling->values.erase(sibling->values.end() - 1);
-                }
-                sibling->size--;
-                parent->keys[i - 1] = sibling->keys[sibling->size - 1];
-            }
-            // 尝试从右兄弟节点借一个key
-            else if (i + 1 < parent->size && parent->children[i + 1]->size > this->degree / 2) {
-                Node* sibling = parent->children[i + 1];
-                node->keys.insert(node->keys.end(), sibling->keys[0]);
-                if (node->is_leaf) {
-                    node->values.insert(node->values.end(), sibling->values[0]);
-                }
-                node->size++;
-                sibling->keys.erase(sibling->keys.begin());
-                if (node->is_leaf) {
-                    sibling->values.erase(sibling->values.begin());
-                }
-                sibling->size--;
-                parent->keys[i] = node->keys[node->size - 1];
-            }
-            // 无法从兄弟节点借一个key，只能合并
-            else {
-                if (i > 0) { // 与左兄弟节点合并
-                    Node* sibling = parent->children[i - 1];
-                    sibling->keys.insert(sibling->keys.end(), node->keys.begin(), node->keys.end());
-                    if (node->is_leaf) {
-                        sibling->values.insert(sibling->values.end(), node->values.begin(), node->values.end());
-                    }
-                    if (!node->is_leaf) { // 如果node不是叶子节点，还需要将node的子节点移动到sibling中
-                        sibling->children.insert(sibling->children.end(), node->children.begin(), node->children.end());
-                        for (int j = 0; j < sibling->children.size(); j++) {
-                            sibling->children[j]->parent = sibling;
-                        }
-                    }
-                    sibling->size += node->size;
-                    sibling->next = node->next;
-                    if (node->next != nullptr) {
-                        node->next->prev = sibling;
-                    }
-                    parent->keys.erase(parent->keys.begin() + i - 1);
-                    parent->children.erase(parent->children.begin() + i);
-                    parent->size--;
-                    delete node;
-                    node = sibling;
-                }
-                else { // 与右兄弟节点合并
-                    Node* sibling = parent->children[i + 1];
-                    node->keys.insert(node->keys.end(), sibling->keys.begin(), sibling->keys.end());
-                    if (node->is_leaf) {
-                        node->values.insert(node->values.end(), sibling->values.begin(), sibling->values.end());
-                    }
-                    if (!node->is_leaf) { // 如果node不是叶子节点，还需要将sibling的子节点移动到node中
-                        node->children.insert(node->children.end(), sibling->children.begin(), sibling->children.end());
-                        for (int j = 0; j < node->children.size(); j++) {
-                            node->children[j]->parent = node;
-                        }
-                    }
-                    node->size += sibling->size;
-                    node->next = sibling->next;
-                    if (sibling->next != nullptr) {
-                        sibling->next->prev = node;
-                    }
-                    parent->keys.erase(parent->keys.begin() + i);
-                    parent->children.erase(parent->children.begin() + i + 1);
-                    parent->size--;
-                    delete sibling;
-                }
-                if (this->root->size == 0) { // 如果parent是根节点
-                    this->root = node;
-                    node->parent = nullptr;
-                    delete parent;
-                }
-                else if (parent->size < this->degree / 2) {
-                    this->remove(parent->keys[0]);
-                }
-            }
-        }
+        return node->values[i];
     }
-    */
-
-    value_t search(key_t key);
 
     void print() {
         std::vector<Node*> nodes;
@@ -326,7 +230,7 @@ private:
         }
 
         // 将node的中间key和value插入到parent中
-        if (parent == nullptr) { // 如果node是根节点
+        if (parent == nullptr || node == this->root) { // 如果node是根节点
             parent = new Node();
             this->root = parent;
             parent->children.push_back(node);
@@ -368,7 +272,7 @@ private:
         }
         // 如果key不在叶子节点中，抛出异常
         if (node->keys[node->size - 1] < key || node->keys[0] > key) {
-            throw "Key not found";
+            throw std::invalid_argument("Key not found");
         }
         return node;
     }
@@ -433,7 +337,9 @@ private:
         }
         else {
             if (i > 0) {
-                merge(node->parent->children[i - 1], node, i); // 合并到左兄弟节点
+                Node* sibling = node->parent->children[i - 1];
+                merge(sibling, node, i); // 合并到左兄弟节点
+                node = sibling;
             }
             else {
                 merge(node, node->parent->children[i + 1], i);
