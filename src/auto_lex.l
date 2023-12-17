@@ -14,7 +14,7 @@
 %}
 
 white [\n\t ]
-ID [a-zA-Z_][a-zA-Z0-9_]*
+ID [a-zA-Z]+
 DATA_STR [a-zA-Z_0-9\,\.\+-=; ]+
 INT [\+-]?[1-9][0-9]*
 
@@ -47,17 +47,21 @@ INT [\+-]?[1-9][0-9]*
         if(strcmp(yytext,"table")&&strcmp(yytext,"TABLE") == 0) {return N_TABLE;}
         if(strcmp(yytext,"database")&&strcmp(yytext,"DATABASE") == 0) {return N_DATABASE;}
         if(strcmp(yytext,"exit")&&strcmp(yytext,"EXIT") == 0) {printf("监测到退出提示,退出整个程序\n");exit(0);}
+        if(strcmp(yytext,"primary")&&strcmp(yytext,"PRIMARY") == 0){return KEY;}
+        return ID;
     }
 
 
 
-"\"" {arr[index++].char = yytext[0];return Y_QUO;printf("%s\n",yytext);}
-"(" {arr[index++].char = yytext[0];return Y_LPAR;printf("%s\n",yytext);}
-")" {arr[index++].char = yytext[0];return Y_RPAR;printf("%s\n",yytext);}
-";" {arr[index++].char = yytext[0];return Y_SEMICOLON;printf("%s\n",yytext);}
+"\"" {arr[index++].char = yytext[0];printf("%s\n",yytext);return Y_QUO;}
+"(" {arr[index++].char = yytext[0];printf("%s\n",yytext);return Y_LPAR;}
+")" {arr[index++].char = yytext[0];printf("%s\n",yytext);return Y_RPAR;}
+";" {arr[index++].char = yytext[0];printf("%s\n",yytext);return Y_SEMICOLON;}
 ";"+.+\n {arr[index].Data = (char*)malloc(sizeof(yytext));strcpy(arr[index].Data,yytext);index++;printf("注释:%s\n",yytext);}
-
-
+"*" {arr[index++].char = yytext[0];printf("%s\n",yytext);return Y_ALL;}
+"," {arr[index++].char = yytext[0];printf("%s\n",yytext);return Y_COMMA;}
+"<" {arr[index++].char = yytext[0];printf("%s\n",yytext);return Y_JLPAR;}
+">" {arr[index++].char = yytext[0];printf("%s\n",yytext);return Y_JRPAR;}
 
 
 %%
@@ -70,6 +74,27 @@ int yywrap(){
     return 1;
 }
 
+int main(int argc, char **argv)
+{
+	if(argc > 2 )
+	{
+		printf("argcs too many!.\n");
+		return 0;
+	}
+	if(argc == 2){
+		yyin = fopen(argv[1],"r");
+	}else{
+		printf("no file input!\n");
+        	return 1;
+	}
 
+	
+	yylex();
+	//printf("before show  &  after yyparse\n");
+	
+	//printf("after show\n");
+
+	return 0;
+}
 
 

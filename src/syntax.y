@@ -1,0 +1,64 @@
+%{
+    #include "stdio.h"
+    #include "stdlib.h"
+    #include "string.h"    
+    
+%}
+
+%union{
+    int ivalue;
+    char str[256];
+}
+
+%token <ivalue> num_INT 
+%token <str> data_STRING ID KEY 
+%token Y_STRING Y_INT
+%token Y_LPAR Y_RPAR Y_EQ Y_SEMICOLON Y_ALL Y_COMMA Y_QUO
+%token OP_CREATE OP_DROP OP_USE OP_SELECT OP_DELETE OP_INSERT OP_UPDATE OP_S_WHERE S_VALUES_ASSIS S_FROM S_SET N_TABLE N_DATABASE
+
+%type DDL DDL_OP DML DML_OP SPE_STRU CONDITION DATASET INLIST DATA
+%type TYPE VALUELIST
+
+
+%%
+SPE_STRU:N_TABLE {}
+        |N_DATABASE {}
+
+DDL:DDL_OP SPE_STRU ID {}
+   |DDL_OP SPE_STRU ID Y_LPAR INLIST Y_RPAR Y_SEMICOLON {}
+   |DDL_OP ID {}
+
+DDL_OP:OP_CREATE {}
+      |OP_USE {}
+      |OP_DROP {}
+
+DML:DML_OP DML_OBJ S_FROM SPE_STRU OP_S_WHERE CONDITION {}
+   |DML_OP DML_OBJ OP_S_WHERE CONDITION {}
+   |DML_OP DML_OBJ S_VALUES_ASSIS Y_LPAR  Y_RPAR {}
+   |DML_OP DML_OBJ S_SET CONDITION OP_S_WHERE CONDITION {}
+
+DML_OP:OP_INSERT {}
+      |OP_UPDATE {}
+      |OP_DELETE {}
+      |OP_SELECT {}
+
+DML_OBJ:ID {}
+       |Y_ALL {}
+
+DATA:num_INT {}
+    |Y_QUO data_STRING Y_QUO {}
+
+CONDITION:ID Y_EQ DATA {}
+         |
+
+TYPE:Y_INT {}
+    |Y_STRING {}
+
+VALUELIST:DATA
+
+DATASET:ID TYPE {}
+       |ID TYPE KEY {}
+
+INLIST:DATASET Y_COMMA INLIST {}
+      |DATASET {}
+%%
