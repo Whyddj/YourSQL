@@ -1,38 +1,78 @@
 /**
  * @file DiskManager.h
- * @author why
  * @brief 磁盘管理器 跟踪和管理空闲页
  * @version 0.1
  * @date 2023-12-5
- *
- *
  */
-#include <iostream>
+
+#include <string>
 #include <queue>
-#include <unordered_map>
+#include <fstream>
+#include "BufferManager.h"
 
-// TODO
+#define PATH_PREFIX "../data/"
+
 class DiskManager {
-    std::queue<int> freePages; // 空闲页队列
-    std::unordered_map<int, char*> pages; // 页号到页内容的映射
-    int nextPageID = 0; // 下一个可用的页号
-
 public:
-    int allocatePage() {
-        if (!freePages.empty()) {
-            int pageID = freePages.front();
-            freePages.pop();
-            return pageID;
+    DiskManager(const std::string& table_name, int cache_size) 
+    : filename(PATH_PREFIX + table_name + ".db"), bufferManager(cache_size, file) {
+        openFile(file, filename);
+    }
+
+    // 使用 BufferManager 读取页面
+    std::vector<char> readPage(int page_id) {
+        return bufferManager.getPage(page_id);
+    }
+
+    // 删除一个页面 需要将页面加入空闲页队列
+    void deletePage(int page_id);
+
+    // 写入一个新页面
+    void writeNewPage(const std::vector<char>& page) {
+        int page_id = newPage();
+        writePage(page_id, page);
+    }
+
+    // 更新一个页面
+    void updatePage(int page_id, const std::vector<char>& page) {
+        writePage(page_id, page);
+    }
+
+private:
+    std::string filename;
+    std::fstream file;
+    BufferManager bufferManager;
+    std::queue<int> freePages; // 空闲页队列
+
+    // 打开文件
+    void openFile(std::fstream& file, const std::string& filename) {
+        file.open(filename, std::ios::in | std::ios::out | std::ios::binary);
+        if (!file.is_open()) {
+            file.clear();
+            file.open(filename, std::ios::out);
+            file.close();
+            file.open(filename, std::ios::in | std::ios::out | std::ios::binary);
         }
-        return nextPageID++;
     }
 
-    void freePage(int pageID) {
-        freePages.push(pageID);
-        // 可能还需要清除或初始化页的内容
+    // 使用 BufferManager 写入页面
+    void writePage(int page_id, const std::vector<char>& page) {
+        bufferManager.writePage(page_id, page);
     }
 
-    // TODO
+    // 新建一个页面
+    int newPage() {
+        int page_id;
+        if (freePages.empty()) {
+            // 没有空闲页，新建一个
+            file.seekg(0, std::ios::end);
+            page_id = file.tellg() / PAGE_SIZE; // tellg() 返回当前位置
+        } else {
+            // 有空闲页，从空闲页队列中取出
+            page_id = freePages.front();
+            freePages.pop();
+        }
+        return page_id;
+    }
 };
-
 

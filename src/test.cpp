@@ -1,6 +1,7 @@
 //test.cpp
 #include <iostream>
 #include "BPlusTree.h"
+#include "DiskManager.h"
 
 using namespace std;
 
@@ -9,12 +10,92 @@ void randomInsertTest();
 void insertTest2();
 void searchTest();
 
+void testReadWrite();
+
 int main() {
-    insertTest();
-    randomInsertTest();
-    insertTest2();
-    searchTest();
+    // insertTest();
+    // randomInsertTest();
+    // insertTest2();
+    // searchTest();
+
+    testReadWrite();
     return 0;
+}
+
+void testReadWrite() {
+    std::string tableName;
+    int cacheSize = 2; // 假设的缓存大小
+    std::cout << "Enter file name for Disk Manager: ";
+    std::cin >> tableName;
+
+    DiskManager diskManager(tableName, cacheSize);
+
+    bool running = true;
+    while (running) {
+        std::cout << "Choose an option:\n";
+        std::cout << "1. Write new page\n";
+        std::cout << "2. Read a page\n";
+        std::cout << "3. Write a specific page\n";
+        std::cout << "4. Exit\n";
+        std::cout << "Enter choice (1-4): ";
+
+        int choice;
+        std::cin >> choice;
+
+        switch (choice) {
+            case 1: {
+                std::string inputString;
+                std::cout << "Enter content to write on the page: ";
+                std::cin.ignore(); // 忽略前一个换行符
+                std::getline(std::cin, inputString); // 读入整行作为字符串
+
+                // 创建一个大小为4096的向量，并用输入的字符串初始化它
+                std::vector<char> writeData(4096, '\0'); // 初始填充为空字符
+                std::copy(inputString.begin(), inputString.end(), writeData.begin());
+
+                diskManager.writeNewPage(writeData);
+                std::cout << "Page written with provided content.\n";
+                break;
+            }
+            case 2: {
+                int pageId;
+                std::cout << "Enter page ID to read: ";
+                std::cin >> pageId;
+                try {
+                    auto readData = diskManager.readPage(pageId);
+                    std::cout << "Data on page " << pageId << ": [";
+                    for (char c : readData) std::cout << c;
+                    std::cout << "]\n";
+                } catch (const std::exception& e) {
+                    std::cout << "Failed to read page: " << e.what() << "\n";
+                }
+                break;
+            }
+            case 3: {
+                int pageId;
+                std::cout << "Enter page ID to write: ";
+                std::cin >> pageId;
+                std::string inputString;
+                std::cout << "Enter content to write on the page: ";
+                std::cin.ignore(); // 忽略前一个换行符
+                std::getline(std::cin, inputString); // 读入整行作为字符串
+
+                // 创建一个大小为4096的向量，并用输入的字符串初始化它
+                std::vector<char> writeData(4096, '\0'); // 初始填充为空字符
+                std::copy(inputString.begin(), inputString.end(), writeData.begin());
+
+                diskManager.updatePage(pageId, writeData);
+                std::cout << "Page written with provided content.\n";
+                break;
+            }
+            case 4:
+                running = false;
+                break;
+            default:
+                std::cout << "Invalid choice. Please try again.\n";
+                break;
+        }
+    }
 }
 
 void searchTest() {
