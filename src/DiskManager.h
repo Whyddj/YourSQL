@@ -47,11 +47,30 @@ private:
     // 打开文件
     void openFile(std::fstream& file, const std::string& filename) {
         file.open(filename, std::ios::in | std::ios::out | std::ios::binary);
+
         if (!file.is_open()) {
+            // 清除所有错误标志
             file.clear();
-            file.open(filename, std::ios::out);
+
+            // 创建文件
+            file.open(filename, std::ios::out | std::ios::binary);
+            if (!file) {
+                throw std::runtime_error("Unable to create file: " + filename);
+            }
+
+            // 填充4K的元数据区域
+            std::vector<char> metadata(PAGE_SIZE, '\0'); // 使用'\0'初始化元数据区
+            file.write(metadata.data(), PAGE_SIZE);
+            if (!file) {
+                throw std::runtime_error("Failed to write metadata to file: " + filename);
+            }
+
+            // 关闭并重新以读写模式打开文件
             file.close();
             file.open(filename, std::ios::in | std::ios::out | std::ios::binary);
+            if (!file) {
+                throw std::runtime_error("Unable to open file after metadata write: " + filename);
+            }
         }
     }
 

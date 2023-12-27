@@ -17,7 +17,7 @@
 
 #define PAGE_SIZE 4096
 
-// 定义一些颜色代码
+// 定义一些颜色代码 方便调试
 const std::string RED = "\033[31m";     // 红色
 const std::string GREEN = "\033[32m";   // 绿色
 const std::string YELLOW = "\033[33m";  // 黄色
