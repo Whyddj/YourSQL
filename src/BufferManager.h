@@ -2,36 +2,151 @@
  * @file BufferManager.h
  * @author why
  * @brief 缓存管理器 负责缓存的管理
- * @version 0.1
+ * @version 0.2
  * @date 2023-12-5
  *
  *
  */
+#include <list>
 #include <unordered_map>
 #include <vector>
+#include <mutex>
+#include <fstream>
+#include <stdexcept>
+#include <iostream>
 
-const int PAGE_SIZE = 4096; // 假设页大小为4096字节
+#define PAGE_SIZE 4096
 
-struct Page {
-    char data[PAGE_SIZE];
-    // 可以包含其他元数据
-};
+// 定义一些颜色代码 方便调试
+const std::string RED = "\033[31m";     // 红色
+const std::string GREEN = "\033[32m";   // 绿色
+const std::string YELLOW = "\033[33m";  // 黄色
+const std::string RESET = "\033[0m";    // 重置颜色
 
+/**
+ * @brief 缓存管理器
+ * @details 负责缓存的管理
+ */
 class BufferManager {
-    std::unordered_map<int, Page> buffer; // 以页号为键存储页
-
 public:
-    Page* getPage(int pageID) {
-        auto it = buffer.find(pageID);
-        if (it != buffer.end()) {
-            // 找到了，直接返回内存中的页
-            return &(it->second);
-        } else {
-            // 未找到，从磁盘加载页到缓冲区
-            Page newPage;
-            // ... 从磁盘读取数据填充newPage ...
-            buffer[pageID] = newPage;
-            return &(buffer[pageID]);
+    BufferManager(int capacity, std::fstream& file) : capacity(capacity), file(file) {
+        std::cout << YELLOW << "[BufferManager--DEBUG] BufferManager created with capacity: " << capacity  << RESET << std::endl;
+    }
+    
+    ~BufferManager() {
+        std::cout << YELLOW << "[BufferManager--DEBUG] BufferManager destructing. Writing dirty pages back to disk."  << RESET << std::endl;
+        // 将所有脏页写回磁盘
+        for (auto& p : cache) {
+            if (p.second.isDirty) {
+                std::cout << YELLOW << "[BufferManager--DEBUG] Writing dirty page " << p.first << " to disk."  << RESET << std::endl;
+                writePageToDisk(p.first, p.second.data);
+            }
         }
+        file.close();
+    }
+
+    // 获取页面
+    std::vector<char> getPage(int page_id) {
+        // std::lock_guard<std::mutex> lock(mutex);
+        std::cout << YELLOW << "[BufferManager--DEBUG] Requesting page " << page_id  << RESET << std::endl;
+
+        if (cache.find(page_id) != cache.end()) {
+            std::cout << YELLOW << "[BufferManager--DEBUG] Page " << page_id << " found in cache."  << RESET << std::endl;
+            // 页面在缓存中，移动到LRU列表的前端
+            touch(page_id);
+            return cache[page_id].data;
+        } else {
+            // 页面不在缓存中，需要从磁盘加载
+            std::cout << YELLOW << "[BufferManager--DEBUG] Page " << page_id << " not in cache. Loading from disk."  << RESET << std::endl;
+            try {
+                loadPageFromDisk(page_id);
+                return cache[page_id].data;
+            } catch (const std::exception& e) {
+                // std::cerr << "Failed to load page " << page_id << " from disk: " << e.what() << std::endl;
+                throw std::runtime_error("Failed to load page from disk: " + std::string(e.what()));
+            }
+        }
+    }
+
+
+    // 写入页面
+    void writePage(int page_id, const std::vector<char>& data) {
+        std::cout << YELLOW << "[BufferManager--DEBUG] Writing page " << page_id  << RESET << std::endl;
+        // std::lock_guard<std::mutex> lock(mutex);
+        // 如果页面在缓存中，直接写入
+        if (cache.find(page_id) != cache.end()) {
+            std::cout << YELLOW << "[BufferManager--DEBUG] Page " << page_id << " updated in cache."  << RESET << std::endl;
+            cache[page_id] = {data, true};
+            touch(page_id);
+            return;
+        }
+        // 如果页面不在缓存中，新建一个页面
+        if (cache.size() == capacity) {
+            std::cout << YELLOW << "[BufferManager--DEBUG] Cache is full. Evicting a page."  << RESET << std::endl;
+            evictPage(); // 如果缓存满了，先移除一个页面
+        }
+        cache[page_id] = {data, true};
+        lru.push_front(page_id);
+        // 如果页面是新建的，需要写入磁盘
+        // writePageToDisk(page_id, data);
+        if (page_id == file.tellg() / PAGE_SIZE) {
+            std::cout << YELLOW << "[BufferManager--DEBUG] Writing new page " << page_id << " to disk."  << RESET << std::endl;
+            writePageToDisk(page_id, data);
+        }
+
+        std::cout << YELLOW << "[BufferManager--DEBUG] Page " << page_id << " added to cache. Cache's size = " << cache.size() << RESET << std::endl;
+    }
+
+private:
+    struct CacheEntry {
+        std::vector<char> data;
+        bool isDirty;
+    };
+
+    int capacity;
+    std::list<int> lru; // 用于LRU页面替换策略的列表
+    std::unordered_map<int, CacheEntry> cache; // 页面ID到CacheEntry的映射
+    std::fstream& file;
+    // std::mutex mutex; // 线程安全锁
+
+    // 将页面移动到LRU列表的前端
+    void touch(int page_id) {
+        lru.remove(page_id);
+        lru.push_front(page_id);
+    }
+
+    // 移除一个缓存
+    void evictPage() {
+        int old_page_id = lru.back();
+        if (cache[old_page_id].isDirty) {
+            // 如果是脏页，需要先写回磁盘
+            writePageToDisk(old_page_id, cache[old_page_id].data);
+        }
+        cache.erase(old_page_id);
+        lru.pop_back();
+    }
+
+    // 从磁盘加载页面
+    void loadPageFromDisk(int page_id) {
+        std::vector<char> data(PAGE_SIZE);
+        file.seekg(page_id * PAGE_SIZE);
+        if (!file.read(data.data(), PAGE_SIZE)) {
+            throw std::runtime_error("Failed to read page from disk");
+        }
+        if (cache.size() == capacity) {
+            std::cout << YELLOW << "[BufferManager--DEBUG] Cache is full. Evicting a page."  << RESET << std::endl;
+            evictPage(); // 如果缓存满了，先移除一个页面
+        }
+        cache[page_id] = {data, false};
+        lru.push_front(page_id);
+    }
+
+    // 将页面写回磁盘
+    void writePageToDisk(int page_id, const std::vector<char>& data) {
+        file.seekp(page_id * PAGE_SIZE);
+        if (!file.write(data.data(), PAGE_SIZE)) {
+            throw std::runtime_error("Failed to write page to disk");
+        }
+        cache[page_id].isDirty = false;
     }
 };
