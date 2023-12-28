@@ -36,7 +36,8 @@ void testReadWrite() {
         std::cout << "1. Write new page\n";
         std::cout << "2. Read a page\n";
         std::cout << "3. Write a specific page\n";
-        std::cout << "4. Exit\n";
+        std::cout << "4. delete a specific page\n";
+        std::cout << "5. Exit\n";
         std::cout << "Enter choice (1-4): ";
 
         int choice;
@@ -80,7 +81,9 @@ void testReadWrite() {
                 std::cin.ignore(); // 忽略前一个换行符
                 std::getline(std::cin, inputString); // 读入整行作为字符串
 
-                // 创建一个大小为4096的向量，并用输入的字符串初始化它
+
+                 // 创建一个大小为4096的向量，并用输入的字符串初始化它
+
                 std::vector<char> writeData(4096, '\0'); // 初始填充为空字符
                 std::copy(inputString.begin(), inputString.end(), writeData.begin());
 
@@ -88,7 +91,17 @@ void testReadWrite() {
                 std::cout << "Page written with provided content.\n";
                 break;
             }
-            case 4:
+
+             case 4: {
+                int pageId;
+                std::cout << "Enter page ID to delete: ";
+                std::cin >> pageId;
+                diskManager.deletePage(pageId);
+                std::cout << "Page " << pageId << " deleted.\n";
+                break;
+            }
+            case 5:
+
                 running = false;
                 break;
             default:
