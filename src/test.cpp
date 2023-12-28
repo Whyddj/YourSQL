@@ -81,7 +81,9 @@ void testReadWrite() {
                 std::cin.ignore(); // 忽略前一个换行符
                 std::getline(std::cin, inputString); // 读入整行作为字符串
 
+
                  // 创建一个大小为4096的向量，并用输入的字符串初始化它
+
                 std::vector<char> writeData(4096, '\0'); // 初始填充为空字符
                 std::copy(inputString.begin(), inputString.end(), writeData.begin());
 
@@ -89,6 +91,7 @@ void testReadWrite() {
                 std::cout << "Page written with provided content.\n";
                 break;
             }
+
              case 4: {
                 int pageId;
                 std::cout << "Enter page ID to delete: ";
@@ -98,6 +101,7 @@ void testReadWrite() {
                 break;
             }
             case 5:
+
                 running = false;
                 break;
             default:

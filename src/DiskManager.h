@@ -63,9 +63,11 @@ private:
         if(file.is_open())
             loadMetaPage();
 
+
         if (!file.is_open()) {
             // 清除所有错误标志
             file.clear();
+
             
             // 创建文件
             file.open(filename, std::ios::out | std::ios::binary);
@@ -134,3 +136,4 @@ private:
         file<<serializedMetaPage;
     }
 };
+
