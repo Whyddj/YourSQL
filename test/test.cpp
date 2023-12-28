@@ -1,7 +1,7 @@
 //test.cpp
 #include <iostream>
-#include "BPlusTree.h"
-#include "DiskManager.h"
+#include "../src/core/BPlusTree.h"
+#include "../src/core/DiskManager.h"
 
 using namespace std;
 
