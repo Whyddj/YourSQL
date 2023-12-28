@@ -3,65 +3,58 @@
     #include "stdlib.h"
     #include "string.h"
     #include "syntax.tab.h"
-    union LEX_gather{
-        int ivalue;
-        int operator;
-        char* Data;
-        char* name;
-    };
-    union LEX_gather arr[1000000];
-    extern int index=0;
+    
+    
 %}
 
 white [\n\t ]
 ID [a-zA-Z]+
-DATA_STR [a-zA-Z_0-9\,\.\+-=; ]+
+/* DATA_STR [a-zA-Z_0-9\,\.\+-=; ]+ */
 INT [\+-]?[1-9][0-9]*
 
 
 %%
 {white} {}
-{DATA_STR} {arr[index].Data = (char*)malloc(sizeof(yytext));strcpy(arr[index].Data,yytext);index++;return data_STRING;printf("%s\n",yytext);}
-{INT} {arr[index++].ivalue == atoi(yytext);return num_INT;printf("%d\n",arr[index-1].ivalue);}
-[\+-]?0 {arr[index++].ivalue = atoi(yytext);return num_INT;printf("%d\n",arr[index-1].ivalue);}
+{INT} {printf("%d\n",atoi(yytext));return num_INT;}
+[\+-]?0 {printf("%d\n",atoi(yytext));return num_INT;}
 {ID} {
-        arr[index].name = (char*)malloc(sizeof(yytext));strcpy(arr[index].name,yytext);index++;printf("%s\n",yytext);
+        printf("%s\n",yytext);
         //数据类型声明
-        if(strcmp(yytext,"INT")&&strcmp(yytext,"int") == 0) {return Y_INT;}
-        if(strcmp(yytext,"VARCHAR")&&strcmp(yytext,"varchar")&&strcmp(yytext,"string") == 0) {return Y_STRING;}
+        if(strcmp(yytext,"INT")==0 || strcmp(yytext,"int") == 0) {return Y_INT;}
+        else if(strcmp(yytext,"VARCHAR")==0 || strcmp(yytext,"varchar")==0 || strcmp(yytext,"string") == 0) {return Y_STRING;}
         //DDL
-        if(strcmp(yytext,"create")&&strcmp(yytext,"CREATE") == 0) {return OP_CREATE;}
-        if(strcmp(yytext,"drop")&&strcmp(yytext,"DROP") == 0) {return OP_DROP;}
-        if(strcmp(yytext,"use")&&strcmp(yytext,"USE") == 0) {return OP_USE;}
+        else if(strcmp(yytext,"create")==0 || strcmp(yytext,"CREATE") == 0) {return OP_CREATE;}
+        else if(strcmp(yytext,"drop")==0 || strcmp(yytext,"DROP") == 0) {return OP_DROP;}
+        else if(strcmp(yytext,"use")==0 || strcmp(yytext,"USE") == 0) {return OP_USE;}
         //DML
-        if(strcmp(yytext,"select")&&strcmp(yytext,"SELECT") == 0) {return OP_SELECT;}
-        if(strcmp(yytext,"delete")&&strcmp(yytext,"DELETE") == 0) {return OP_DELETE;}
-        if(strcmp(yytext,"insert")&&strcmp(yytext,"INSERT") == 0) {return OP_INSERT;}
-        if(strcmp(yytext,"update")&&strcmp(yytext,"UPDATE") == 0) {return OP_UPDATE;}
+        else if(strcmp(yytext,"select")==0 || strcmp(yytext,"SELECT") == 0) {return OP_SELECT;}
+        else if(strcmp(yytext,"delete")==0 || strcmp(yytext,"DELETE") == 0) {return OP_DELETE;}
+        else if(strcmp(yytext,"insert")==0 || strcmp(yytext,"INSERT") == 0) {return OP_INSERT;}
+        else if(strcmp(yytext,"update")==0 || strcmp(yytext,"UPDATE") == 0) {return OP_UPDATE;}
         //assistance
-        if(strcmp(yytext,"where")&&strcmp(yytext,"WHERE") == 0) {return S_WHERE;}
-        if(strcmp(yytext,"values")&&strcmp(yytext,"VALUES") == 0) {return S_VALUES_ASSIS;}
-        if(strcmp(yytext,"from")&&strcmp(yytext,"FROM") == 0) {return S_FROM;}
-        if(strcmp(yytext,"set")&&strcmp(yytext,"SET") == 0) {return S_SET;}
+        else if(strcmp(yytext,"where")==0 || strcmp(yytext,"WHERE") == 0) {return OP_S_WHERE;}
+        else if(strcmp(yytext,"values")==0 || strcmp(yytext,"VALUES") == 0) {return S_VALUES_ASSIS;}
+        else if(strcmp(yytext,"from")==0 || strcmp(yytext,"FROM") == 0) {return S_FROM;}
+        else if(strcmp(yytext,"set")==0 || strcmp(yytext,"SET") == 0) {return S_SET;}
         //specific name
-        if(strcmp(yytext,"table")&&strcmp(yytext,"TABLE") == 0) {return N_TABLE;}
-        if(strcmp(yytext,"database")&&strcmp(yytext,"DATABASE") == 0) {return N_DATABASE;}
-        if(strcmp(yytext,"exit")&&strcmp(yytext,"EXIT") == 0) {printf("监测到退出提示,退出整个程序\n");exit(0);}
-        if(strcmp(yytext,"primary")&&strcmp(yytext,"PRIMARY") == 0){return KEY;}
-        return ID;
+        else if(strcmp(yytext,"table")==0 || strcmp(yytext,"TABLE") == 0) {return N_TABLE;}
+        else if(strcmp(yytext,"database")==0 || strcmp(yytext,"DATABASE") == 0) {return N_DATABASE;}
+        else if(strcmp(yytext,"exit")==0 || strcmp(yytext,"EXIT") == 0) {printf("监测到退出提示,退出整个程序\n");exit(0);}
+        else if(strcmp(yytext,"primary")==0 || strcmp(yytext,"PRIMARY") == 0){return KEY_type;}
+        else if(strcmp(yytext,"key")==0 || strcmp(yytext,"KEY") == 0){return KEY_symbol;}
+        else return ID;
     }
 
 
 
-"\"" {arr[index++].char = yytext[0];printf("%s\n",yytext);return Y_QUO;}
-"(" {arr[index++].char = yytext[0];printf("%s\n",yytext);return Y_LPAR;}
-")" {arr[index++].char = yytext[0];printf("%s\n",yytext);return Y_RPAR;}
-";" {arr[index++].char = yytext[0];printf("%s\n",yytext);return Y_SEMICOLON;}
-";"+.+\n {arr[index].Data = (char*)malloc(sizeof(yytext));strcpy(arr[index].Data,yytext);index++;printf("注释:%s\n",yytext);}
-"*" {arr[index++].char = yytext[0];printf("%s\n",yytext);return Y_ALL;}
-"," {arr[index++].char = yytext[0];printf("%s\n",yytext);return Y_COMMA;}
-"<" {arr[index++].char = yytext[0];printf("%s\n",yytext);return Y_JLPAR;}
-">" {arr[index++].char = yytext[0];printf("%s\n",yytext);return Y_JRPAR;}
+"\""+.+"\"" {printf("%s\n",yytext);return data_STRING;}
+"(" {printf("%s\n",yytext);return Y_LPAR;}
+")" {printf("%s\n",yytext);return Y_RPAR;}
+";" {printf("%s\n",yytext);return Y_SEMICOLON;}
+"-- "+.+\n {printf("注释:%s\n",yytext);}
+"*" {printf("%s\n",yytext);return Y_ALL;}
+"=" {printf("%s\n",yytext);return Y_EQ;}
+"," {printf("%s\n",yytext);return Y_COMMA;}
 
 
 %%
@@ -73,28 +66,4 @@ void yyerror(char *str){
 int yywrap(){
     return 1;
 }
-
-int main(int argc, char **argv)
-{
-	if(argc > 2 )
-	{
-		printf("argcs too many!.\n");
-		return 0;
-	}
-	if(argc == 2){
-		yyin = fopen(argv[1],"r");
-	}else{
-		printf("no file input!\n");
-        	return 1;
-	}
-
-	
-	yylex();
-	//printf("before show  &  after yyparse\n");
-	
-	//printf("after show\n");
-
-	return 0;
-}
-
 
