@@ -1,0 +1,13 @@
+create database person;
+use person;
+drop database person;
+create table person(
+    name string primary key,
+    score int
+);
+drop table person;
+
+select name from person where score = "adaso";
+select score from person where score = 3;
+insert person values("xiaohong",59);
+update person set score = 60 where name = "xiaohong";
