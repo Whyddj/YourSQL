@@ -14,15 +14,51 @@ void searchTest();
 void testReadWrite();
 void IndexManagerTest();
 
+void testSerize();
+
 int main() {
     // insertTest();
-    // randomInsertTest();
+    randomInsertTest();
     // insertTest2();
     // searchTest();
 
     // testReadWrite();
-    IndexManagerTest();
+    // IndexManagerTest();
+    // testSerize();
+
     return 0;
+}
+
+void testSerize() {
+    BPlusTree<uint32_t, uint32_t> tree(4);
+    // 插入一些数据
+    tree.insert(1, 100);
+    tree.insert(2, 200);
+    tree.insert(3, 300);
+    tree.insert(4, 400);
+    // tree.insert(5, 500);
+    // tree.insert(6, 600);
+    // tree.insert(7, 700);
+    // tree.insert(8, 800);
+    // tree.insert(9, 900);
+    // tree.insert(10, 1000);
+
+    // 序列化树到文件
+    std::ofstream outFile("bplustree.dat", std::ios::binary);
+    tree.serialize(outFile);
+    outFile.close();
+    tree.print();
+
+    // 创建一个新的 B+树实例来进行反序列化
+    BPlusTree<uint32_t, uint32_t> newTree(4);
+
+    // 从文件反序列化树
+    std::ifstream inFile("bplustree.dat", std::ios::binary);
+    newTree.deserialize(inFile);
+    inFile.close();
+    newTree.print();
+
+
 }
 
 void IndexManagerTest() {
@@ -126,7 +162,7 @@ void searchTest() {
 }
 
 void insertTest2() {
-    BPlusTree<int, int> tree(3);
+    BPlusTree<int, int> tree(4);
     tree.insert(1, 1);
     tree.print();
     tree.insert(2, 2);
@@ -213,7 +249,7 @@ void insertTest2() {
 }
 
 void insertTest() {
-    BPlusTree<int, int> tree(3);
+    BPlusTree<int, int> tree(4);
     tree.insert(1, 1);
     tree.print();
     tree.insert(2, 2);
@@ -237,63 +273,8 @@ void insertTest() {
 }
 
 void randomInsertTest() {
-    BPlusTree<int, int> tree(3);
-    tree.insert(1, 1);
-    tree.print();
-    tree.insert(5, 2);
-    tree.print();
-    tree.insert(9, 3);
-    tree.print();
-    tree.insert(4, 4);
-    tree.print();
-    tree.insert(43, 5);
-    tree.print();
-    tree.insert(6, 6);
-    tree.print();
-    tree.insert(7, 7);
-    tree.print();
-    tree.insert(14, 8);
-    tree.print();
-    tree.insert(22, 9);
-    tree.print();
-    tree.insert(10, 10);
-    tree.print();
-    // tree.insert(11, 11);
-    // tree.print();
-    // tree.insert(12, 12);
-    // tree.print();
-    // tree.insert(10, 13);
-    // tree.print();
-    // tree.insert(14, 14);
-    // tree.print();
-    // tree.insert(15, 15);
-    // tree.print();
-    // tree.insert(16, 16);
-    // tree.print();
-    // tree.insert(17, 17);
-    // tree.print();
-    // tree.insert(18, 18);
-    // tree.print();
-    // tree.insert(19, 19);
-    // tree.print();
-    // tree.insert(32, 20);
-    // tree.print();
-    // tree.insert(21, 21);
-    // tree.print();
-    // tree.insert(22, 22);
-    // tree.print();
-    // tree.insert(23, 23);
-    // tree.print();
-    // tree.insert(2, 24);
-    // tree.print();
-    // tree.insert(25, 25);
-    // tree.print();
-    // tree.insert(6, 26);
-    // tree.print();
-    // tree.insert(27, 27);
-    // tree.print();
-    // tree.insert(14, 28);
-    // tree.print();
-    // tree.insert(29, 29);
-    // tree.print();
+    BPlusTree<int, int> tree(3, {{1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}, {7, 7}, {8, 8}, {9, 9}, {10, 10}});
+    tree.remove(4);
+    tree.remove(2);
+    tree.remove(9);
 }

@@ -107,7 +107,7 @@ struct IndexPage {
     IndexPage() : dirty(true), parentPageId(0), nextPageId(0), prevPageId(0), pageId(0), size(0), isLeaf(false) {
     }
 
-    IndexPage(std::vector<char>& buffer) {
+    IndexPage(const std::vector<char>& buffer) {
         deserialize(buffer);
     }
 
@@ -181,16 +181,11 @@ struct IndexPage {
 class IndexManager {
 public:
     IndexManager(const std::string& table_name, int cache_size) 
-    : filename(PATH_PREFIX + table_name + ".idx"), bufferManager(cache_size, file) {
+    : filename(PATH_PREFIX + table_name + ".idx"), cacheSize(cache_size) {
         openFile(file, filename);
     }
     ~IndexManager() {
-        //
-    }
-
-    // 使用 BufferManager 读取页面
-    std::vector<char> readPage(int page_id) {
-        return bufferManager.getPage(page_id);
+        flushCache();
     }
 
     // 删除一个页面 需要将页面加入空闲页队列
@@ -199,16 +194,6 @@ public:
     }
 
     // 写入一个新页面
-    void writeNewPage(const std::vector<char>& page) {
-        int page_id = newPage();
-        writePage(page_id, page);
-    }
-
-    // 更新一个页面
-    void updatePage(int page_id, const std::vector<char>& page) {
-        writePage(page_id, page);
-    }
-    
 
     // 加入新节点
     void insertNode(uint32_t key, u_int32_t value) {
@@ -229,15 +214,96 @@ public:
 private:
     std::string filename;
     std::fstream file;
-    BufferManager bufferManager;
     IndexMetadataPage metaPage;
+    std::vector<char> metaPageData;
     IndexPage rootPage;
+    std::unordered_map<int, std::pair<IndexPage, std::list<int>::iterator>> cache; // 页面缓存
+    std::list<int> lruKeys; // 用于跟踪最近最少使用的页号
+    size_t cacheSize; // 缓存大小
+
+    void flushCache() {
+        for (auto& pair : cache) {
+            int page_id = pair.first;
+            IndexPage& page = pair.second.first;
+            std::vector<char> page_data;
+            page.serialize(page_data);
+            writePageToDisk(page_id, page_data);
+        }
+        util::log(util::DEBUG, "IndexManager: flushed cache");
+        metaPage.serialize(metaPageData);
+        writePageToDisk(0, metaPageData);
+        util::log(util::DEBUG, "IndexManager: flushed metadata page");
+    }
+
+    IndexPage loadPageFromDisk(int page_id) {
+        util::log(util::DEBUG, "IndexManager: loading page ", page_id, " from disk");
+        std::vector<char> page_data(PAGE_SIZE, 0);
+        file.seekg(page_id * PAGE_SIZE);
+        file.read(page_data.data(), PAGE_SIZE);
+        IndexPage page(page_data);
+        return page;
+    }
+
+    void evictPage() {
+        if (lruKeys.empty()) return;
+
+        int oldPageId = lruKeys.back();
+        std::vector<char> pageData;
+        cache[oldPageId].first.serialize(pageData);
+        writePageToDisk(oldPageId, pageData);
+        lruKeys.pop_back();
+        cache.erase(oldPageId);
+    }
+
+    IndexPage& getPage(int page_id) {
+        util::log(util::DEBUG, "IndexManager: getting page ", page_id);
+        auto it = cache.find(page_id);
+        if (it != cache.end()) {
+            // 如果找到页面，将其移动到LRU列表的前端
+            lruKeys.splice(lruKeys.begin(), lruKeys, it->second.second);
+            return it->second.first;
+        }
+
+        // 加载页面
+        IndexPage newPage = loadPageFromDisk(page_id);
+
+        // 如果缓存已满，移除最近最少使用的项
+        if (cache.size() >= cacheSize) {
+            evictPage();
+        }
+
+        // 添加新页面到缓存和LRU列表
+        auto newIt = cache.emplace(page_id, std::make_pair(std::move(newPage), lruKeys.begin())).first;
+        lruKeys.push_front(page_id);
+        newIt->second.second = lruKeys.begin();
+        return newIt->second.first;
+    }
+
+    void writePage(int page_id, IndexPage& page) {
+        // 如果页面在缓存中，直接写入
+        if (cache.find(page_id) != cache.end()) {
+            cache[page_id].first = page;
+            lruKeys.splice(lruKeys.begin(), lruKeys, cache[page_id].second); // 将页面移动到LRU列表的前端
+            return;
+        }
+
+        // 如果页面不在缓存中，新建一个页面
+
+        // 如果页面是新建的，写入磁盘
+        if (page_id == file.tellg() / PAGE_SIZE) {
+            std::vector<char> page_data;
+            page.serialize(page_data);
+            writePageToDisk(page_id, page_data);
+        }
+    }
+
+    void writePageToDisk(int page_id, const std::vector<char>& data) {
+        file.seekp(page_id * PAGE_SIZE);
+        file.write(data.data(), data.size());
+    }
 
     void split(IndexPage& node) {
-        auto parent = node.parentPageId;
-        auto sibling = new IndexPage();
 
-        
     }
 
     IndexPage& find_leaf(uint32_t key) {
@@ -332,22 +398,19 @@ private:
 
     void loadMetaPage() {
         util::log(util::DEBUG, "IndexManager: loading metadata page");
-        metaPage.deserialize(bufferManager.getPageConst(0));
+        metaPageData.resize(PAGE_SIZE);
+        file.seekg(0);
+        file.read(metaPageData.data(), PAGE_SIZE);
+        metaPage.deserialize(metaPageData);
         util::log(util::DEBUG, "IndexManager: metadata page's root page id: ", metaPage.rootPageId);
         util::log(util::DEBUG, "IndexManager: metadata page's tree order: ", metaPage.treeOrder);
     }
 
     void loadRootPage() {
         util::log(util::DEBUG, "IndexManager: loading root page");
-        rootPage.deserialize(bufferManager.getPageConst(metaPage.rootPageId));
+        rootPage = getPage(metaPage.rootPageId);
         util::log(util::DEBUG, "IndexManager: root page's size: ", rootPage.size);
         util::log(util::DEBUG, "IndexManager: root page's parent page id: ", rootPage.parentPageId);
-    }
-
-
-    // 使用 BufferManager 写入页面
-    void writePage(int page_id, const std::vector<char>& page) {
-        bufferManager.writePage(page_id, page);
     }
 
     // 新建一个页面
@@ -365,7 +428,5 @@ private:
         // metaPage.rowNum++;
         return page_id;
     }
-
-
 };
 

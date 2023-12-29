@@ -5,10 +5,10 @@
  * @version 0.1
  * @date 2023-12-3
  *
- *
  */
 
-
+#ifndef B_PLUS_TREE
+#define B_PLUS_TREE
 
 #include <vector>
 #include <iostream>
@@ -40,9 +40,41 @@ public:
         }
     }
 
+     /**
+     * @brief B+树从文件中读取的构造函数
+    */
+    BPlusTree(std::istream& in, int degree) : BPlusTree(degree) {
+        key_t key;
+        value_t value;
+        while (in.read(reinterpret_cast<char*>(&key), sizeof(key_t)) &&
+            in.read(reinterpret_cast<char*>(&value), sizeof(value_t))) {
+            insert(key, value);
+        }
+    }
+
     ~BPlusTree() {
-        // removeAll();
+        removeAll();
         delete root;
+    }
+
+    void serialize(std::ostream& out) {
+        Node* current = find_leftmost_leaf();
+        while (current != nullptr) {
+            for (int i = 0; i < current->size; ++i) {
+                out.write(reinterpret_cast<const char*>(&current->keys[i]), sizeof(key_t));
+                out.write(reinterpret_cast<const char*>(&current->values[i]), sizeof(value_t));
+            }
+            current = current->next;
+        }
+    }
+
+    void deserialize(std::istream& in) {
+        key_t key;
+        value_t value;
+        while (in.read(reinterpret_cast<char*>(&key), sizeof(key_t)) &&
+            in.read(reinterpret_cast<char*>(&value), sizeof(value_t))) {
+            insert(key, value);
+        }
     }
 
     /**
@@ -128,22 +160,6 @@ public:
     }
 
     /**
-     * @brief 从B+树中删除所有键值对
-    */
-    void removeAll(){
-        auto node = this->root;
-        while (!node->is_leaf) {
-            node = node->children[0];
-        }
-        while (node) {
-            auto next = node->next;
-            delete node;
-            node = next;
-        }
-        this->root = new Node(true);
-    }
-
-    /**
      * @brief 从B+树中查找一个键值对
     */
     value_t search(const key_t& key) {
@@ -217,6 +233,37 @@ private:
 
     Node* root;
     int degree; // B+树的阶数，即一个节点最多有多少个子节点
+
+    void deleteSubtree(Node* node) {
+        if (node == nullptr) return;
+
+        // 递归地删除所有子节点
+        if (!node->is_leaf) {
+            for (Node* child : node->children) {
+                deleteSubtree(child);
+            }
+        }
+
+        // 删除当前节点
+        delete node;
+    }
+
+    void removeAll() {
+        // 删除整棵树
+        deleteSubtree(root);
+
+        // 重置根节点为新的空叶子节点
+        root = new Node(true);
+    }
+
+    Node* find_leftmost_leaf() {
+        Node* current = root; // 从根节点开始
+        while (current && !current->is_leaf) {
+            // 持续向下遍历到第一个子节点，即最左侧的子节点
+            current = current->children[0];
+        }
+        return current; // 返回找到的叶子节点
+    }
 
     void split(Node* node){
         auto parent = node->parent;
@@ -434,3 +481,5 @@ private:
         delete right;
     }
 };
+
+#endif // B_PLUS_TREE

@@ -1,20 +1,14 @@
-/**
- * @file BPlusTree.h
- * @author why
- * @brief B+树 直接操作存储
- * @version 0.1
- * @date 2023-12-3
- *
- *
- */
-
-
+#ifndef BP_TREE_H
+#define BP_TREE_H
 
 #include <vector>
 #include <iostream>
+#include <memory>
+
+
 
 /**
- * @brief B+树的实现
+ * @brief B+树的实现，使用智能智能进行优化
 */
 template <typename key_t, typename value_t>
 class BPlusTree {
@@ -24,7 +18,7 @@ public:
     /**
      * @brief B+树默认构造函数
     */
-    BPlusTree(int degree) : degree(degree), root(new Node(true)) {
+    BPlusTree(int degree) : degree(degree), root(std::make_unique<Node>(true)) {
         if (degree < min_degree) {
             throw std::invalid_argument("Degree must be greater than 2");
         }
@@ -35,21 +29,52 @@ public:
     */
     BPlusTree(int degree, std::initializer_list<std::pair<const key_t, value_t>> items) 
         : BPlusTree(degree) {
-        for (const auto& [key, value] : items) { // C++17的结构化绑定
+        for (const auto& [key, value] : items) {
             this->insert(key, value);
         }
     }
 
+    /**
+     * @brief B+树从文件中读取的构造函数
+    */
+    BPlusTree(std::istream& in, int degree) : BPlusTree(degree) {
+        key_t key;
+        value_t value;
+        while (in.read(reinterpret_cast<char*>(&key), sizeof(key_t)) &&
+            in.read(reinterpret_cast<char*>(&value), sizeof(value_t))) {
+            insert(key, value);
+        }
+    }
+
     ~BPlusTree() {
-        // removeAll();
-        delete root;
+        removeAll();
+    }
+
+    void serialize(std::ostream& out) {
+        Node* current = find_leftmost_leaf();
+        while (current != nullptr) {
+            for (int i = 0; i < current->size; ++i) {
+                out.write(reinterpret_cast<const char*>(&current->keys[i]), sizeof(key_t));
+                out.write(reinterpret_cast<const char*>(&current->values[i]), sizeof(value_t));
+            }
+            current = current->next;
+        }
+    }
+
+    void deserialize(std::istream& in) {
+        key_t key;
+        value_t value;
+        while (in.read(reinterpret_cast<char*>(&key), sizeof(key_t)) &&
+            in.read(reinterpret_cast<char*>(&value), sizeof(value_t))) {
+            insert(key, value);
+        }
     }
 
     /**
      * @brief 向B+树中插入一个键值对
     */
     void insert(key_t key, value_t value) {
-        Node* node = this->root;
+        Node* node = this->root.get();
 
         // 找到叶子节点
         while (!node->is_leaf) {
@@ -57,7 +82,7 @@ public:
             while (i < node->size && key > node->keys[i]) {
                 i++;
             }
-            node = node->children[i];
+            node = node->children[i].get();
         }
 
         int i = 0;
@@ -82,7 +107,7 @@ public:
         remove_from_leaf(leaf, key);
 
         // 如果是根节点，直接返回
-        if (leaf == root) {
+        if (leaf == root.get()) {
             return;
         }
 
@@ -91,7 +116,7 @@ public:
         }
 
         int i = 0;
-        while (i < leaf->parent->size + 1 && leaf->parent->children[i] != leaf) {
+        while (i < leaf->parent->size + 1 && leaf->parent->children[i].get() != leaf) {
             i++;
         }
         // 如果左兄弟节点的大小大于阶数的一半，从左兄弟节点借一个key
@@ -106,19 +131,18 @@ public:
         else {
             if (i > 0) {
                 // 防止 heap-use-after-free
-                auto sibling = leaf->parent->children[i - 1];
+                auto sibling = leaf->parent->children[i - 1].get();
                 merge_leaf(sibling, leaf, i - 1);
                 leaf = sibling;
             }
             else {
-                merge_leaf(leaf, leaf->parent->children[i + 1], i);
+                merge_leaf(leaf, leaf->parent->children[i + 1].get(), i);
             }
         }
 
-        if (leaf->parent == root) {
+        if (leaf->parent == root.get()) {
             if (leaf->parent->size == 0) {
-                root = leaf->parent->children[0];
-                delete leaf->parent;
+                root = std::move(leaf->parent->children[0]); // 更新根节点
             } else return;
         }
         else if (leaf->parent->size + 1 < (degree + 1) / 2) {
@@ -130,17 +154,9 @@ public:
     /**
      * @brief 从B+树中删除所有键值对
     */
-    void removeAll(){
-        auto node = this->root;
-        while (!node->is_leaf) {
-            node = node->children[0];
-        }
-        while (node) {
-            auto next = node->next;
-            delete node;
-            node = next;
-        }
-        this->root = new Node(true);
+    void removeAll() {
+        // 通过重置根节点来删除所有节点
+        root = std::make_unique<Node>(true);
     }
 
     /**
@@ -165,7 +181,7 @@ public:
     */
     void print() {
         std::vector<Node*> nodes;
-        nodes.push_back(this->root);
+        nodes.push_back(this->root.get());
         int level = 0; // 添加一个变量来跟踪树的层级
 
         while (!nodes.empty()) {
@@ -183,7 +199,7 @@ public:
                 if (!node->is_leaf) {
                     std::cout << "-> {";
                     for (int j = 0; j < node->children.size(); j++) {
-                        next_nodes.push_back(node->children[j]);
+                        next_nodes.push_back(node->children[j].get());
                         std::cout << "(" << node->children[j]->keys[0] << ")"; // 以子节点的第一个键作为标识
                         if (j < node->children.size() - 1) std::cout << ", ";
                     }
@@ -202,68 +218,35 @@ private:
     /**
      * @brief B+树的节点定义
     */
-    // struct Node {
-    //     bool is_leaf = false; // 是否是叶子节点
-    //     int size = 0;   // 当前节点的大小, 即当前节点有多少个key
-    //     std::vector<key_t> keys; // 当前节点的key
-    //     std::vector<value_t> values; // 当前节点的value, 只有叶子节点才有
-    //     std::vector<Node*> children; // 当前节点的子节点
-    //     Node* parent = nullptr; // 当前节点的父节点
-    //     Node* next = nullptr; // 当前节点的下一个节点，只有叶子节点才有
-    //     Node* prev = nullptr; // 当前节点的上一个节点，只有叶子节点才有
-        
-
-    //     explicit Node(bool isLeaf = false) : is_leaf(isLeaf) {} // explicit关键字防止隐式转换
-    // };
-
     struct Node {
         bool is_leaf = false; // 是否是叶子节点
-        int size = 0; // 当前节点的大小, 即当前节点有多少个key
+        int size = 0;   // 当前节点的大小, 即当前节点有多少个key
         std::vector<key_t> keys; // 当前节点的key
         std::vector<value_t> values; // 当前节点的value, 只有叶子节点才有
-        std::vector<int> childrenPageIds; // 子节点的页号，而不是指针
-        int parentPageId = -1; // 父节点的页号
-        int nextPageId = -1; // 下一个节点的页号，只有叶子节点才有
-        int prevPageId = -1; // 上一个节点的页号，只有叶子节点才有
-        int pageId = -1; // 当前节点的页号
-        bool dirty = false; // 节点自上次加载以来是否已被修改
-        // std::mutex node_mutex;
+        std::vector<std::unique_ptr<Node>> children; // 当前节点的子节点
+        Node* parent = nullptr; // 当前节点的父节点
+        Node* next = nullptr; // 当前节点的下一个节点，只有叶子节点才有
+        Node* prev = nullptr; // 当前节点的上一个节点，只有叶子节点才有
 
-        explicit Node(bool isLeaf = false) : is_leaf(isLeaf) {
-            // 分配页号或在磁盘管理器中注册
-            pageId = DiskManager::allocatePage();
-        }
-
-        // 传入页号直接读取
-        explicit Node(u_int8_t pageId) : pageId(pageId) {
-            // 从磁盘管理器中读取
-            DiskManager::readPage(pageId, buffer);
-            // 从缓冲区反序列化节点内容
-            deserialize(buffer);
-        }
-
-        // 序列化节点内容到缓冲区
-        void serialize(char* buffer) {
-            // 实现序列化逻辑
-        }
-
-        // 从缓冲区反序列化节点内容
-        void deserialize(const char* buffer) {
-            // 实现反序列化逻辑
-        }
-
-        // 当节点被修改时标记为脏
-        void markDirty() {
-            dirty = true;
-        }
+        explicit Node(bool isLeaf = false) : is_leaf(isLeaf) {} // explicit关键字防止隐式转换
     };
 
-    Node* root;
+    std::unique_ptr<Node> root;
     int degree; // B+树的阶数，即一个节点最多有多少个子节点
+
+    Node* find_leftmost_leaf() {
+        Node* current = root.get(); // 从根节点开始
+        while (current && !current->is_leaf) {
+            // 持续向下遍历到第一个子节点，即最左侧的子节点
+            current = current->children[0].get();
+        }
+        return current; // 返回找到的叶子节点
+    }
+
 
     void split(Node* node){
         auto parent = node->parent;
-        auto sibling = new Node(node->is_leaf);
+        auto sibling = std::make_unique<Node>(node->is_leaf); // 使用make_unique创建新节点
 
         // 将node的后一半key和value移动到sibling中 
         sibling->keys.assign(node->keys.end() - node->size / 2, node->keys.end());
@@ -280,28 +263,28 @@ private:
         // 如果node是叶子节点，还需要处理next和prev指针
         if (node->is_leaf) {
             sibling->next = node->next;
-            if (node->next != nullptr) { // 如果node不是最后一个叶子节点
-                node->next->prev = sibling;
+            if (node->next != nullptr) {
+                node->next->prev = sibling.get();
             }
-            node->next = sibling;
+            node->next = sibling.get();
             sibling->prev = node;
         }
 
         // 将node的后一半children移动到sibling中
         if (!node->is_leaf) {
-            sibling->children.assign(node->children.begin() + node->size, node->children.end());
+            sibling->children.assign(std::make_move_iterator(node->children.begin() + node->size),
+                                    std::make_move_iterator(node->children.end()));
             for (auto& child : sibling->children) {
-                child->parent = sibling;
+                child->parent = sibling.get();
             }
             node->children.resize(node->size);
         }
 
-        // 将node的中间key和value插入到parent中
-        if (!parent || node == this->root) { // 如果node是根节点
-            parent = new Node();
-            this->root = parent;
-            parent->children.push_back(node);
-            node->parent = parent;
+        if (!parent || node == root.get()) {
+            auto newRoot = std::make_unique<Node>(); // 创建新的根节点
+            newRoot->children.push_back(std::move(root)); // 将旧的根节点作为新根节点的子节点
+            node->parent = newRoot.get(); // 更新旧根节点的父指针
+            root = std::move(newRoot); // 更新根指针
         }
 
         int i = 0;
@@ -309,17 +292,16 @@ private:
             i++;
         }
         parent->keys.insert(parent->keys.begin() + i, node->keys[node->size - 1]);
-        // parent->values.insert(parent->values.begin() + i, node->values[node->size - 1]);
         parent->size++;
-        // 如果node不是叶子节点，还需要将最后一个键值对从node中删除
+
         if (!node->is_leaf) {
             node->keys.pop_back();
             node->size--;
         }
 
         // 将sibling插入到parent中
-        parent->children.insert(parent->children.begin() + i + 1, sibling);
         sibling->parent = parent;
+        parent->children.insert(parent->children.begin() + i + 1, std::move(sibling)); // 使用move插入
 
         // 如果parent的大小超过了阶数，需要继续分裂
         if (parent->size == this->degree) {
@@ -328,14 +310,14 @@ private:
     }
     
     Node* find_leaf(key_t key) {
-        auto node = this->root;
+        auto node = this->root.get();
         // 找到叶子节点
         while (!node->is_leaf) {
             int i = 0;
             while (i < node->size && key > node->keys[i]) {
                 i++;
             }
-            node = node->children[i];
+            node = node->children[i].get();
         }
         // 如果key不在叶子节点中，抛出异常
         if (node->keys[node->size - 1] < key || node->keys[0] > key) {
@@ -360,7 +342,7 @@ private:
 
     // 叶子节点从左兄弟节点借一个key
     void borrow_from_left_leaf(Node* leaf, int i) {
-        auto sibling = leaf->parent->children[i - 1];
+        auto sibling = leaf->parent->children[i - 1].get();
         leaf->keys.insert(leaf->keys.begin(), sibling->keys[sibling->size - 1]);
         leaf->values.insert(leaf->values.begin(), sibling->values[sibling->size - 1]);
         leaf->size++;
@@ -372,7 +354,7 @@ private:
 
     // 叶子节点从右兄弟节点借一个key
     void borrow_from_right_leaf(Node* leaf, int i) {
-        auto sibling = leaf->parent->children[i + 1];
+        auto sibling = leaf->parent->children[i + 1].get();
         leaf->keys.insert(leaf->keys.end(), sibling->keys[0]);
         leaf->values.insert(leaf->values.end(), sibling->values[0]);
         leaf->size++;
@@ -384,23 +366,29 @@ private:
 
     // 叶子节点合并 right合并到left
     void merge_leaf(Node* left, Node* right, int i) {
+        // 合并keys和values
         left->keys.insert(left->keys.end(), right->keys.begin(), right->keys.end());
         left->values.insert(left->values.end(), right->values.begin(), right->values.end());
         left->size += right->size;
+
+        // 更新链表指针
         left->next = right->next;
         if (right->next != nullptr) {
             right->next->prev = left;
         }
+
+        // 更新父节点的keys和children
         left->parent->keys.erase(left->parent->keys.begin() + i);
         left->parent->children.erase(left->parent->children.begin() + i + 1);
         left->parent->size--;
-        delete right;
+        // 注意：不需要手动删除right节点，因为当我们从children中移除它时，智能指针将自动处理它的销毁
     }
+
 
     // 调整非叶子节点
     void adjust(Node* node) {
         int i = 0;
-        while (i < node->parent->size + 1 && node->parent->children[i] != node) {
+        while (i < node->parent->size + 1 && node->parent->children[i].get() != node) {
             i++;
         }
         if (i > 0 && node->parent->children[i - 1]->size + 1 > (degree + 1) / 2) {
@@ -411,19 +399,18 @@ private:
         }
         else {
             if (i > 0) {
-                Node* sibling = node->parent->children[i - 1];
+                Node* sibling = node->parent->children[i - 1].get();
                 merge(sibling, node, i); // 合并到左兄弟节点
                 node = sibling;
             }
             else {
-                merge(node, node->parent->children[i + 1], i);
+                merge(node, node->parent->children[i + 1].get(), i);
             }
         }
         
-        if (node->parent == root) {
+        if (node->parent == root.get()) {
             if (node->parent->size == 0) {
-                root = node->parent->children[0];
-                delete node->parent;
+                root = std::move(node->parent->children[0]); // 更新根节点
             } else return;
         }
         else if (node->parent->size + 1 < (degree + 1) / 2) {
@@ -431,40 +418,45 @@ private:
         }
     }
 
+
     // 非叶子节点从左兄弟节点借一个key
     void borrow_from_left(Node* node, int i) {
-        auto sibling = node->parent->children[i - 1];
+        auto& sibling = node->parent->children[i - 1];
         node->keys.insert(node->keys.begin(), node->parent->keys[i - 1]);
         node->size++;
-        node->parent->keys[i - 1] = sibling->keys[sibling->size - 1];
-        sibling->keys.erase(sibling->keys.end() - 1);
+        node->parent->keys[i - 1] = sibling->keys.back();
+        sibling->keys.pop_back();
         sibling->size--;
-        
-        node->children.insert(node->children.begin(), sibling->children[sibling->size]);
-        node->children[0]->parent = node;
-        sibling->children.erase(sibling->children.end() - 1);
+
+        node->children.insert(node->children.begin(), std::move(sibling->children.back()));
+        node->children.front()->parent = node;
+        sibling->children.pop_back();
     }
 
     // 非叶子节点从右兄弟节点借一个key
     void borrow_from_right(Node* node, int i) {
-        auto sibling = node->parent->children[i + 1];
-        node->keys.insert(node->keys.end(), node->parent->keys[i]);
+        auto& sibling = node->parent->children[i + 1];
+        node->keys.push_back(node->parent->keys[i]);
         node->size++;
-        node->parent->keys[i] = sibling->keys[0];
+        node->parent->keys[i] = sibling->keys.front();
         sibling->keys.erase(sibling->keys.begin());
         sibling->size--;
-        
-        node->children.insert(node->children.end(), sibling->children[0]);
-        node->children[node->size]->parent = node;
+
+        node->children.push_back(std::move(sibling->children.front()));
+        node->children.back()->parent = node;
         sibling->children.erase(sibling->children.begin());
     }
 
+
     // 非叶子节点合并 right合并到left
     void merge(Node* left, Node* right, int i) {
-        left->keys.insert(left->keys.end(), left->children[left->size]->keys.back()); // 将子节点的最后一个key插入到left中
+        left->keys.push_back(left->children[left->size]->keys.back());
         left->size++;
         left->keys.insert(left->keys.end(), right->keys.begin(), right->keys.end());
-        left->children.insert(left->children.end(), right->children.begin(), right->children.end());
+        left->children.insert(left->children.end(),
+                            std::make_move_iterator(right->children.begin()),
+                            std::make_move_iterator(right->children.end()));
+
         for (auto& child : left->children) {
             if (child) {
                 child->parent = left;
@@ -474,6 +466,8 @@ private:
         left->parent->keys.erase(left->parent->keys.begin() + i);
         left->parent->children.erase(left->parent->children.begin() + i + 1);
         left->parent->size--;
-        delete right;
+        // 注意：不需要手动删除right节点，智能指针将自动处理它的销毁
     }
 };
+
+#endif // BP_TREE_H
