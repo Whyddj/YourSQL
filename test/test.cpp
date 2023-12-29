@@ -2,6 +2,7 @@
 #include <iostream>
 #include "../src/core/BPlusTree.h"
 #include "../src/core/DiskManager.h"
+#include "../src/core/IndexManager.h"
 
 using namespace std;
 
@@ -11,6 +12,7 @@ void insertTest2();
 void searchTest();
 
 void testReadWrite();
+void IndexManagerTest();
 
 int main() {
     // insertTest();
@@ -18,8 +20,13 @@ int main() {
     // insertTest2();
     // searchTest();
 
-    testReadWrite();
+    // testReadWrite();
+    IndexManagerTest();
     return 0;
+}
+
+void IndexManagerTest() {
+    IndexManager indexManager = IndexManager("test_idx", 2);
 }
 
 void testReadWrite() {

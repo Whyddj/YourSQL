@@ -202,18 +202,60 @@ private:
     /**
      * @brief B+树的节点定义
     */
-    struct Node {
-        bool is_leaf = false; // 是否是叶子节点
-        int size = 0;   // 当前节点的大小, 即当前节点有多少个key
-        std::vector<key_t> keys; // 当前节点的key
-        std::vector<value_t> values; // 当前节点的value, 只有叶子节点才有
-        std::vector<Node*> children; // 当前节点的子节点
-        Node* parent = nullptr; // 当前节点的父节点
-        Node* next = nullptr; // 当前节点的下一个节点，只有叶子节点才有
-        Node* prev = nullptr; // 当前节点的上一个节点，只有叶子节点才有
+    // struct Node {
+    //     bool is_leaf = false; // 是否是叶子节点
+    //     int size = 0;   // 当前节点的大小, 即当前节点有多少个key
+    //     std::vector<key_t> keys; // 当前节点的key
+    //     std::vector<value_t> values; // 当前节点的value, 只有叶子节点才有
+    //     std::vector<Node*> children; // 当前节点的子节点
+    //     Node* parent = nullptr; // 当前节点的父节点
+    //     Node* next = nullptr; // 当前节点的下一个节点，只有叶子节点才有
+    //     Node* prev = nullptr; // 当前节点的上一个节点，只有叶子节点才有
         
 
-        explicit Node(bool isLeaf = false) : is_leaf(isLeaf) {} // explicit关键字防止隐式转换
+    //     explicit Node(bool isLeaf = false) : is_leaf(isLeaf) {} // explicit关键字防止隐式转换
+    // };
+
+    struct Node {
+        bool is_leaf = false; // 是否是叶子节点
+        int size = 0; // 当前节点的大小, 即当前节点有多少个key
+        std::vector<key_t> keys; // 当前节点的key
+        std::vector<value_t> values; // 当前节点的value, 只有叶子节点才有
+        std::vector<int> childrenPageIds; // 子节点的页号，而不是指针
+        int parentPageId = -1; // 父节点的页号
+        int nextPageId = -1; // 下一个节点的页号，只有叶子节点才有
+        int prevPageId = -1; // 上一个节点的页号，只有叶子节点才有
+        int pageId = -1; // 当前节点的页号
+        bool dirty = false; // 节点自上次加载以来是否已被修改
+        // std::mutex node_mutex;
+
+        explicit Node(bool isLeaf = false) : is_leaf(isLeaf) {
+            // 分配页号或在磁盘管理器中注册
+            pageId = DiskManager::allocatePage();
+        }
+
+        // 传入页号直接读取
+        explicit Node(u_int8_t pageId) : pageId(pageId) {
+            // 从磁盘管理器中读取
+            DiskManager::readPage(pageId, buffer);
+            // 从缓冲区反序列化节点内容
+            deserialize(buffer);
+        }
+
+        // 序列化节点内容到缓冲区
+        void serialize(char* buffer) {
+            // 实现序列化逻辑
+        }
+
+        // 从缓冲区反序列化节点内容
+        void deserialize(const char* buffer) {
+            // 实现反序列化逻辑
+        }
+
+        // 当节点被修改时标记为脏
+        void markDirty() {
+            dirty = true;
+        }
     };
 
     Node* root;
