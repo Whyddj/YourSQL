@@ -4,8 +4,10 @@
  * @version 0.1
  * @date 2023-12-5
  */
-
+#ifndef DISKMANAGER_
+#define DISKMANAGER_
 #include <ios>
+#include <iostream>
 #include <sstream>
 #include <string>
 #include <queue>
@@ -18,8 +20,8 @@
 
 class DiskManager {
 public:
-    DiskManager(const std::string& table_name, int cache_size) 
-    : filename(PATH_PREFIX + table_name + ".db"), bufferManager(cache_size, file) {
+    DiskManager(const std::string& table_name, int cache_size, const std::string& database_name) 
+    : filename(PATH_PREFIX+database_name+table_name + ".dat"), bufferManager(cache_size, file) {
         openFile(file, filename);
     }
     ~DiskManager()
@@ -36,7 +38,6 @@ public:
     void deletePage(int page_id)
     {   
         clearPage(page_id);
-        metaPage.rowNum--;
         metaPage.freePages.push(page_id);
     }
 
@@ -51,6 +52,24 @@ public:
         writePage(page_id, page);
     }
 
+
+      void clearPage(int page_id)
+    {
+        auto emptyPage = std::vector<char>(PAGE_SIZE, '\0');
+        writePage(page_id, emptyPage);
+    }
+
+    meta_page& getMetaPage()
+    {
+        return metaPage;
+    }
+
+    std::fstream& getFile()
+    {   
+        return file;
+    }
+
+
 private:
     std::string filename;
     std::fstream file;
@@ -60,10 +79,15 @@ private:
     // 打开文件
     void openFile(std::fstream& file, const std::string& filename) {
         file.open(filename, std::ios::in | std::ios::out | std::ios::binary);
-        if(file.is_open())
+        if(file.is_open()){
             loadMetaPage();
-
-
+            std::cout<<metaPage.rowNum;
+            std::cout<<metaPage.colNum;
+            std::cout<<metaPage.primaryKey;
+            std::cout<<metaPage.tableName;
+            return;
+        }
+            
         if (!file.is_open()) {
             // 清除所有错误标志
             file.clear();
@@ -71,6 +95,7 @@ private:
             
             // 创建文件
             file.open(filename, std::ios::out | std::ios::binary);
+            metaPage={};
             std::strncpy(metaPage.tableName, filename.c_str(), MAX_NAME_LEN - 1);
             
             if (!file) {
@@ -104,36 +129,36 @@ private:
         if (metaPage.freePages.empty()) {
             // 没有空闲页，新建一个
             file.seekg(0, std::ios::end);
-            page_id = file.tellg()/ PAGE_SIZE; // tellg() 返回当前位置
+            page_id = file.tellg()/ PAGE_SIZE;
+            metaPage.rowNum++; // tellg() 返回当前位置
         } else {
             // 有空闲页，从空闲页队列中取出
             page_id = metaPage.freePages.front();
             metaPage.freePages.pop();
         }
-        metaPage.rowNum++;
+    
         return page_id;
     }
 
-    void clearPage(int page_id)
-    {
-        auto emptyPage = std::vector<char>(PAGE_SIZE, '\0');
-        writePage(page_id, emptyPage);
-    }
-
+  
     void loadMetaPage()
     {   
-        file.seekg(0,std::ios_base::beg);
-        std::stringstream buffer;
-        buffer<<file.rdbuf();
-        std::string metaContent=buffer.str();
+        file.seekg(0, std::ios_base::beg);
+        file.seekg(0, std::ios_base::end);
+        std::streampos fileSize = file.tellg();
+        file.seekg(0, std::ios_base::beg);
+        std::string metaContent(static_cast<size_t>(fileSize), '\0');
+        file.read(&metaContent[0], fileSize);
+
         deserializeMetaPage(metaPage, metaContent);
     }
 
     void UpdateMetaPage()
     {
-        file.seekg(0,std::ios_base::beg);
-        std::string serializedMetaPage=serializeMetaPage(metaPage);
-        file<<serializedMetaPage;
+        file.seekg(0, std::ios_base::beg);
+        std::string serializedMetaPage = serializeMetaPage(metaPage);
+        file.write(serializedMetaPage.data(), serializedMetaPage.size());
     }
 };
 
+#endif

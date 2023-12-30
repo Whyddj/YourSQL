@@ -40,7 +40,7 @@ public:
         }
     }
 
-     /**
+    /**
      * @brief B+树从文件中读取的构造函数
     */
     BPlusTree(std::istream& in, int degree) : BPlusTree(degree) {
@@ -174,6 +174,21 @@ public:
             throw std::invalid_argument("Key not found");
         }
         return node->values[i];
+    }
+
+    /**
+     * @brief 从B+树中更新一个键值对
+    */
+    void update(const key_t& key, const value_t& value) {
+        auto node = find_leaf(key);
+        int i = 0;
+        while (i < node->size && key > node->keys[i]) {
+            i++;
+        }
+        if (node->keys[i] != key) {
+            throw std::invalid_argument("Key not found");
+        }
+        node->values[i] = value;
     }
 
     /**
