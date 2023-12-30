@@ -2,40 +2,47 @@
     #include "stdio.h"
     #include "stdlib.h"
     #include "string.h"
-    #include <iostream>
-    #include <string>
-    #include <vector>
-    #include <map>
+    // #include <iostream>
+    // #include <string>
+    // #include <vector>
+    // #include <map>
     #include "DATA.h"
     #include "parse_operations.h"
-    std::vector<std::string> ColumnVector;
-    std::vector<struct Data_type> DataVector;
-    std::vector<struct Init_List> TypeVector;
-    struct Data_type data;
-    struct Init_List init;
-    struct Condition condition;
+
+    // std::vector<std::string> ColumnVector;
+    // std::vector<struct Data_type> DataVector;
+    // std::vector<struct Init_List> TypeVector;
+    char** ColumnVector;
+    int size;
+    Data_Type* DataVector;
+    int dataSize;
+    Init_List* TypeVector;
+    int typeSize;
+
+    Data_Type data;
+    Init_List init;
+    Condition condition;
     enum Relation relation;
-    parse* parse = new parse();
     int yylex();
     void yyerror(char* str);
 %}
 
 %code requires {
-    #include <iostream>
-    #include <string>
-    #include <vector>
-    #include <map>
+    // #include <iostream>
+    // #include <string>
+    // #include <vector>
+    // #include <map>
     #include "DATA.h"
     #include "parse_operations.h"
 }
 
 %union{
-    std::vector<std::string> column_list;
-    std::vector<struct Data_type> data_list;
-    std::vector<struct Init_List> init_list;
-    struct Data_type data;
-    struct Init_List init;
-    struct Condition condition;
+    char** column_list;
+    Data_Type* data_list;
+    Init_List* init_list;
+    Data_Type data;
+    Init_List init;
+    Condition condition;
     enum Relation relation;
     int ivalue;
     char str[256];
@@ -67,24 +74,33 @@ FINAL:OPE
 OPE:DDL {printf("DDL\n");}
    |DML {printf("DML\n");}
 
-DDL:OP_CREATE N_DATABASE ID Y_SEMICOLON {parse->createDB($3);}//创建数据库
-   |OP_CREATE N_TABLE ID Y_LPAR INLIST Y_RPAR Y_SEMICOLON {parse->createTB($3,$5);}//创建表
-   |OP_DROP N_DATABASE ID Y_SEMICOLON {parse->dropDB($3);} //删除数据库
-   |OP_DROP N_TABLE ID Y_SEMICOLON {parse->dropTB($3);} //删除表
-   |OP_USE ID Y_SEMICOLON {parse->useDB($2);} //使用数据库
+DDL:OP_CREATE N_DATABASE ID Y_SEMICOLON {createDB($3);}//创建数据库
+   |OP_CREATE N_TABLE ID Y_LPAR INLIST Y_RPAR Y_SEMICOLON {createTB($3,$5);}//创建表
+   |OP_DROP N_DATABASE ID Y_SEMICOLON {dropDB($3);} //删除数据库
+   |OP_DROP N_TABLE ID Y_SEMICOLON {dropTB($3);} //删除表
+   |OP_USE ID Y_SEMICOLON {useDB($2);} //使用数据库
 
-DML:DML_OP DML_OBJ S_FROM ID OP_S_WHERE CONDITION Y_SEMICOLON{parse->selectFromTB($2,$4,$6);}//从表中选择数据
-   |DML_OP DML_OBJ OP_S_WHERE CONDITION Y_SEMICOLON{parse->deleteFromTB($2,$4);} //从表中删除数据
-   |DML_OP DML_OBJ S_VALUES_ASSIS Y_LPAR DATALIST Y_RPAR Y_SEMICOLON{parse->insetIntoTB($2,$5);}//向表中插入数据
-   |DML_OP DML_OBJ S_SET CONDITION OP_S_WHERE CONDITION Y_SEMICOLON{parse->updateTB($2,$4,$6);}//更新表中数据
+DML:DML_OP DML_OBJ S_FROM ID OP_S_WHERE CONDITION Y_SEMICOLON{selectFromTB($2,$4,$6);}//从表中选择数据
+   |DML_OP DML_OBJ OP_S_WHERE CONDITION Y_SEMICOLON{deleteFromTB($2,$4);} //从表中删除数据
+   |DML_OP DML_OBJ S_VALUES_ASSIS Y_LPAR DATALIST Y_RPAR Y_SEMICOLON{insetIntoTB($2,$5);}//向表中插入数据
+   |DML_OP DML_OBJ S_SET CONDITION OP_S_WHERE CONDITION Y_SEMICOLON{updateTB($2,$4,$6);}//更新表中数据
 
 DML_OP:OP_INSERT 
       |OP_UPDATE 
       |OP_DELETE 
       |OP_SELECT 
 
-COLUMN_LIST:ID {ColumnVector.push_back($1);$$ = ColumnVector;}
-           |ID Y_COMMA COLUMN_LIST {ColumnVector.push_back($1);$$ = ColumnVector;}
+COLUMN_LIST:ID {
+                ColumnVector = (char**)realloc(ColumnVector, sizeof(char*) * (size + 1));
+                ColumnVector[size++] = strdup($1);
+                $$ = ColumnVector;
+            }
+           |ID Y_COMMA COLUMN_LIST {
+                ColumnVector = (char**)realloc(ColumnVector, sizeof(char*) * (size + 1));
+                ColumnVector[size++] = strdup($1);
+                $$ = ColumnVector;
+            }
+
 
 DML_OBJ:COLUMN_LIST {$$ = $1;}
        |Y_ALL {$$ = ColumnVector;}
@@ -105,12 +121,40 @@ TYPE:Y_INT {$$ = 0;}
 
 KEY:KEY_type KEY_symbol
 
-INITSET:ID TYPE {init.name = (char*)malloc(sizeof(*$1));strcpy(init.name,$1);init.flag=0;init.type=$2;TypeVector.push_back(init);}
-       |ID TYPE KEY {init.name = (char*)malloc(sizeof(*$1));strcpy(init.name,$1);init.flag=1;init.type=$2;TypeVector.push_back(init);}
+INITSET:ID TYPE {
+        init.name = (char*)malloc(sizeof(*$1));
+        strcpy(init.name,$1);
+        init.flag=0;init.type=$2;
+        // TypeVector.push_back(init);
+        $$ = init;
+    }
+       |ID TYPE KEY {
+        init.name = (char*)malloc(sizeof(*$1));
+        strcpy(init.name,$1);
+        init.flag=1;init.type=$2;
+        TypeVector.push_back(init);
+        $$ = init;
+    }
 
-DATALIST:DATA {DataVector.push_back($1);$$ = DataVector;}
-        |DATA Y_COMMA DATALIST {DataVector.push_back($1),$$ = DataVector;}
+DATALIST:DATA {
+            DataVector = (Data_Type*)realloc(DataVector, sizeof(Data_Type) * (dataSize + 1));
+            DataVector[dataSize++] = $1;
+            $$ = DataVector;
+        }
+        |DATA Y_COMMA DATALIST {
+            DataVector = (Data_Type*)realloc(DataVector, sizeof(Data_Type) * (dataSize + 1));
+            DataVector[dataSize++] = $1;
+            $$ = DataVector;
+        }
 
-INLIST:INITSET Y_COMMA INLIST {TypeVector.push_back($1);$$ = TypeVector;}
-      |INITSET {TypeVector.push_back($1);$$ = TypeVector;}
+INLIST:INITSET Y_COMMA INLIST {
+            TypeVector = (Init_List*)realloc(TypeVector, sizeof(Init_List) * (typeSize + 1));
+            TypeVector[typeSize++] = $1;
+            $$ = TypeVector;
+        }
+      |INITSET {
+            TypeVector = (Init_List*)realloc(TypeVector, sizeof(Init_List) * (typeSize + 1));
+            TypeVector[typeSize++] = $1;
+            $$ = TypeVector;
+        } 
 %%
