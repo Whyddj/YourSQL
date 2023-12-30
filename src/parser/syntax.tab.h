@@ -45,7 +45,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 30 "syntax.y"
+#line 29 "syntax.y"
 
     // #include <iostream>
     // #include <string>
@@ -103,17 +103,17 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 39 "syntax.y"
+#line 38 "syntax.y"
 
     char** column_list;
-    Data_Type* data_list;
-    Init_List* init_list;
-    Data_Type data;
-    Init_List init;
-    Condition condition;
-    enum Relation relation;
+    struct Data_Type** data_list;
+    struct Init_List** init_list;
+    struct Data_Type data;
+    struct Init_List init;
+    struct Condition condition;
+    enum Relation relation_op;
     int ivalue;
-    char str[256];
+    char *str;
 
 #line 119 "syntax.tab.h"
 

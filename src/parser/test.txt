@@ -3,7 +3,8 @@ use person;
 drop database person;
 create table person(
     name string primary key,
-    score int
+    score int,
+    test string
 );
 drop table person;
 

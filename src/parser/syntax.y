@@ -14,15 +14,14 @@
     // std::vector<struct Init_List> TypeVector;
     char** ColumnVector;
     int size;
-    Data_Type* DataVector;
+    struct Data_Type** DataVector;
     int dataSize;
-    Init_List* TypeVector;
+    struct Init_List** TypeVector;
     int typeSize;
 
-    Data_Type data;
-    Init_List init;
-    Condition condition;
-    enum Relation relation;
+    struct Data_Type data;
+    struct Init_List init;
+    struct Condition condition;
     int yylex();
     void yyerror(char* str);
 %}
@@ -38,31 +37,31 @@
 
 %union{
     char** column_list;
-    Data_Type* data_list;
-    Init_List* init_list;
-    Data_Type data;
-    Init_List init;
-    Condition condition;
-    enum Relation relation;
+    struct Data_Type** data_list;
+    struct Init_List** init_list;
+    struct Data_Type data;
+    struct Init_List init;
+    struct Condition condition;
+    enum Relation relation_op;
     int ivalue;
-    char str[256];
+    char *str;
 }
 
 %token <ivalue> num_INT 
 %token <str> data_STRING ID
-%token <relation> Y_EQ Y_GREAT Y_GREATEQ Y_LESS Y_LESSEQ
+%token Y_EQ Y_GREAT Y_GREATEQ Y_LESS Y_LESSEQ
 %token Y_STRING Y_INT KEY_type KEY_symbol
 %token Y_LPAR Y_RPAR Y_SEMICOLON Y_ALL Y_COMMA
 %token OP_CREATE OP_DROP OP_USE OP_SELECT OP_DELETE OP_INSERT OP_UPDATE OP_S_WHERE S_VALUES_ASSIS S_FROM S_SET N_TABLE N_DATABASE
 
-%type DDL DML DML_OP 
+%type DDL DML DML_OP
 %type <condition> CONDITION 
-%type <data> INITSET 
-%type <init>INLIST
+%type <init>INITSET 
+%type <init_list>INLIST
 %type <data> DATA
 %type <data_list> DATALIST
 %type <column_list> COLUMN_LIST DML_OBJ
-%type <relation> RELATION_OP
+%type <relation_op> RELATION_OP
 %type <ivalue> TYPE 
 %type OPE FINAL KEY
 
@@ -75,15 +74,40 @@ OPE:DDL {printf("DDL\n");}
    |DML {printf("DML\n");}
 
 DDL:OP_CREATE N_DATABASE ID Y_SEMICOLON {createDB($3);}//创建数据库
-   |OP_CREATE N_TABLE ID Y_LPAR INLIST Y_RPAR Y_SEMICOLON {createTB($3,$5);}//创建表
+   |OP_CREATE N_TABLE ID Y_LPAR INLIST Y_RPAR Y_SEMICOLON {
+                                                        createTB($3,$5, typeSize);
+                                                        for (int i = 0; i < typeSize; ++i) {
+                                                            free(TypeVector[i]->name); // 释放每个元素指向的内存
+                                                            free(TypeVector[i]); // 释放每个元素指向的内存
+                                                        }
+                                                        free(TypeVector); // 释放数组本身
+                                                        TypeVector = NULL; // 避免悬挂指针
+                                                        typeSize = 0;
+                                                        }//创建表
    |OP_DROP N_DATABASE ID Y_SEMICOLON {dropDB($3);} //删除数据库
    |OP_DROP N_TABLE ID Y_SEMICOLON {dropTB($3);} //删除表
    |OP_USE ID Y_SEMICOLON {useDB($2);} //使用数据库
 
-DML:DML_OP DML_OBJ S_FROM ID OP_S_WHERE CONDITION Y_SEMICOLON{selectFromTB($2,$4,$6);}//从表中选择数据
-   |DML_OP DML_OBJ OP_S_WHERE CONDITION Y_SEMICOLON{deleteFromTB($2,$4);} //从表中删除数据
-   |DML_OP DML_OBJ S_VALUES_ASSIS Y_LPAR DATALIST Y_RPAR Y_SEMICOLON{insetIntoTB($2,$5);}//向表中插入数据
-   |DML_OP DML_OBJ S_SET CONDITION OP_S_WHERE CONDITION Y_SEMICOLON{updateTB($2,$4,$6);}//更新表中数据
+DML:DML_OP DML_OBJ S_FROM ID OP_S_WHERE CONDITION Y_SEMICOLON{
+                                                            selectFromTB($2,$4,&$6,size);
+                                                            for (int i = 0; i < size; ++i) {
+                                                                free(ColumnVector[i]); // 释放每个元素指向的内存
+                                                            }
+                                                            free(ColumnVector); // 释放数组本身
+                                                            ColumnVector = NULL; // 避免悬挂指针
+                                                            size = 0;
+                                                            }//从表中选择数据
+   |DML_OP DML_OBJ OP_S_WHERE CONDITION Y_SEMICOLON{deleteFromTB($2[0],&$4);} //从表中删除数据
+   |DML_OP DML_OBJ S_VALUES_ASSIS Y_LPAR DATALIST Y_RPAR Y_SEMICOLON{
+                                                            insertIntoTB($2[0],$5,dataSize);
+                                                            for (int i = 0; i < dataSize; ++i) {
+                                                                free(DataVector[i]); // 释放每个元素指向的内存
+                                                            }
+                                                            free(DataVector); // 释放数组本身
+                                                            DataVector = NULL; // 避免悬挂指针
+                                                            dataSize = 0;
+                                                            }//向表中插入数据
+   |DML_OP DML_OBJ S_SET CONDITION OP_S_WHERE CONDITION Y_SEMICOLON{updateTB($2[0],&$4,&$6);}//更新表中数据
 
 DML_OP:OP_INSERT 
       |OP_UPDATE 
@@ -103,18 +127,19 @@ COLUMN_LIST:ID {
 
 
 DML_OBJ:COLUMN_LIST {$$ = $1;}
-       |Y_ALL {$$ = ColumnVector;}
+       |Y_ALL {$$ = NULL;}
 
-DATA:num_INT {data.data.num_int = $1;data.flag = 0;$$ = data;}
-    |data_STRING {strcpy(data.data.str_data,$1);data.flag = 1;$$ = data;}
 
-CONDITION:ID RELATION_OP DATA {condition.name = (char*)malloc(sizeof(*$1));condition.relation_op = $2;condition.data = $3;$$ = condition;}
+CONDITION:ID RELATION_OP DATA {condition.name = (char*)malloc(strlen($1) + 1);strcpy(condition.name, $1);condition.relation_op = $2;condition.data = $3;$$ = condition;
+                                // printf("condition.name:%s\n",condition.name);
+                                //printf("$1:%s\n",$1);
+                                }
 
-RELATION_OP:Y_EQ {$$ = 1;}
-           |Y_GREAT {$$ = 2;}
-           |Y_GREATEQ {$$ = 3;}
-           |Y_LESS {$$ = 4;}
-           |Y_LESSEQ {$$ = 5;}
+RELATION_OP:Y_EQ {$$ = EQ;}
+           |Y_GREAT {$$ = GREAT;}
+           |Y_GREATEQ {$$ = GREATEQ;}
+           |Y_LESS {$$ = LESS;}
+           |Y_LESSEQ {$$ = LESSEQ;}
 
 TYPE:Y_INT {$$ = 0;}
     |Y_STRING {$$ = 1;}
@@ -122,39 +147,67 @@ TYPE:Y_INT {$$ = 0;}
 KEY:KEY_type KEY_symbol
 
 INITSET:ID TYPE {
-        init.name = (char*)malloc(sizeof(*$1));
+        init.name = (char*)malloc(sizeof(strlen($1) + 1));
         strcpy(init.name,$1);
         init.flag=0;init.type=$2;
-        // TypeVector.push_back(init);
         $$ = init;
     }
        |ID TYPE KEY {
-        init.name = (char*)malloc(sizeof(*$1));
+        init.name = (char*)malloc(sizeof(strlen($1) + 1));
         strcpy(init.name,$1);
         init.flag=1;init.type=$2;
-        TypeVector.push_back(init);
         $$ = init;
     }
 
+DATA:num_INT {data.data.num_int = $1;data.flag = 0;$$ = data;}
+    |data_STRING {strcpy(data.data.str_data,$1);data.flag = 1;$$ = data;}
+
 DATALIST:DATA {
-            DataVector = (Data_Type*)realloc(DataVector, sizeof(Data_Type) * (dataSize + 1));
-            DataVector[dataSize++] = $1;
+            DataVector = (struct Data_Type**)realloc(DataVector, sizeof(struct Data_Type*) * (dataSize + 1));
+            
+            DataVector[dataSize] = (struct Data_Type*)malloc(sizeof(struct Data_Type));
+            // printf("111");
+            DataVector[dataSize]->data = $1.data;
+            // DataVector[dataSize]->name = (char*)malloc(strlen($1.name) + 1);
+            // strcpy(DataVector[dataSize]->name,$1.name);
+            DataVector[dataSize]->flag = $1.flag;
+            dataSize++; 
             $$ = DataVector;
+            // printf("2%s\n",DataVector[dataSize-1]->name);
         }
         |DATA Y_COMMA DATALIST {
-            DataVector = (Data_Type*)realloc(DataVector, sizeof(Data_Type) * (dataSize + 1));
-            DataVector[dataSize++] = $1;
+            DataVector = (struct Data_Type**)realloc(DataVector, sizeof(struct Data_Type*) * (dataSize + 1));
+            
+            DataVector[dataSize] = (struct Data_Type*)malloc(sizeof(struct Data_Type));
+            // printf("111");
+            DataVector[dataSize]->data = $1.data;
+            // DataVector[dataSize]->name = (char*)malloc(strlen($1.name) + 1);
+            // strcpy(DataVector[dataSize]->name,$1.name);
+            DataVector[dataSize]->flag = $1.flag;
+            dataSize++; 
             $$ = DataVector;
+            // printf("2%s\n",DataVector[dataSize-1]->name);
         }
 
 INLIST:INITSET Y_COMMA INLIST {
-            TypeVector = (Init_List*)realloc(TypeVector, sizeof(Init_List) * (typeSize + 1));
-            TypeVector[typeSize++] = $1;
+            TypeVector = (struct Init_List**)realloc(TypeVector, sizeof(struct Init_List*) * (typeSize + 1));
+            TypeVector[typeSize] = (struct Init_List*)malloc(sizeof(struct Init_List));
+            TypeVector[typeSize]->name = (char*)malloc(strlen($1.name) + 1);
+            strcpy(TypeVector[typeSize]->name,$1.name);
+            TypeVector[typeSize]->flag = $1.flag;
+            TypeVector[typeSize]->type = $1.type;
+            typeSize++;
             $$ = TypeVector;
         }
       |INITSET {
-            TypeVector = (Init_List*)realloc(TypeVector, sizeof(Init_List) * (typeSize + 1));
-            TypeVector[typeSize++] = $1;
+            TypeVector = (struct Init_List**)realloc(TypeVector, sizeof(struct Init_List*) * (typeSize + 1));
+            TypeVector[typeSize] = (struct Init_List*)malloc(sizeof(struct Init_List));
+            TypeVector[typeSize]->name = (char*)malloc(strlen($1.name) + 1);
+            strcpy(TypeVector[typeSize]->name,$1.name);
+            TypeVector[typeSize]->flag = $1.flag;
+            TypeVector[typeSize]->type = $1.type;
+            typeSize++;
             $$ = TypeVector;
         } 
+
 %%

@@ -15,14 +15,14 @@ union Data{
 
 typedef struct Data_Type{
     union Data data;
-    char* name;
-    int flag;
+    // char* name;
+    int flag; // 0 for int, 1 for string
 } Data_Type;
 
 typedef struct Init_List{
     char* name;
     int flag;
-    int type;
+    int type; // 1 for primary key, 0 for none
 } Init_List;
 
 enum Relation{

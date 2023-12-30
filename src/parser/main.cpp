@@ -2,9 +2,7 @@
 #include "string.h"
 #include "stdlib.h"
 
-FILE* yyin;
 int yyparse();
-
 
 int main(int argc, char **argv)
 {
@@ -15,7 +13,6 @@ int main(int argc, char **argv)
 		return 0;
 	}
 	if(argc == 2){
-		yyin = fopen(argv[1],"r");
 	}else{
 		printf("no file input!\n");
         	return 1;

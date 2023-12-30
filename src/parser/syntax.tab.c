@@ -84,19 +84,18 @@
     // std::vector<struct Init_List> TypeVector;
     char** ColumnVector;
     int size;
-    Data_Type* DataVector;
+    struct Data_Type** DataVector;
     int dataSize;
-    Init_List* TypeVector;
+    struct Init_List** TypeVector;
     int typeSize;
 
-    Data_Type data;
-    Init_List init;
-    Condition condition;
-    enum Relation relation;
+    struct Data_Type data;
+    struct Init_List init;
+    struct Condition condition;
     int yylex();
     void yyerror(char* str);
 
-#line 100 "syntax.tab.c"
+#line 99 "syntax.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -165,12 +164,12 @@ enum yysymbol_kind_t
   YYSYMBOL_DML_OP = 38,                    /* DML_OP  */
   YYSYMBOL_COLUMN_LIST = 39,               /* COLUMN_LIST  */
   YYSYMBOL_DML_OBJ = 40,                   /* DML_OBJ  */
-  YYSYMBOL_DATA = 41,                      /* DATA  */
-  YYSYMBOL_CONDITION = 42,                 /* CONDITION  */
-  YYSYMBOL_RELATION_OP = 43,               /* RELATION_OP  */
-  YYSYMBOL_TYPE = 44,                      /* TYPE  */
-  YYSYMBOL_KEY = 45,                       /* KEY  */
-  YYSYMBOL_INITSET = 46,                   /* INITSET  */
+  YYSYMBOL_CONDITION = 41,                 /* CONDITION  */
+  YYSYMBOL_RELATION_OP = 42,               /* RELATION_OP  */
+  YYSYMBOL_TYPE = 43,                      /* TYPE  */
+  YYSYMBOL_KEY = 44,                       /* KEY  */
+  YYSYMBOL_INITSET = 45,                   /* INITSET  */
+  YYSYMBOL_DATA = 46,                      /* DATA  */
   YYSYMBOL_DATALIST = 47,                  /* DATALIST  */
   YYSYMBOL_INLIST = 48                     /* INLIST  */
 };
@@ -561,10 +560,10 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    71,    71,    72,    74,    75,    77,    78,    79,    80,
-      81,    83,    84,    85,    86,    88,    89,    90,    91,    93,
-      98,   105,   106,   108,   109,   111,   113,   114,   115,   116,
-     117,   119,   120,   122,   124,   131,   139,   144,   150,   155
+       0,    70,    70,    71,    73,    74,    76,    77,    86,    87,
+      88,    90,    99,   100,   109,   111,   112,   113,   114,   116,
+     121,   128,   129,   132,   137,   138,   139,   140,   141,   143,
+     144,   146,   148,   154,   161,   162,   164,   177,   191,   201
 };
 #endif
 
@@ -587,8 +586,8 @@ static const char *const yytname[] =
   "OP_USE", "OP_SELECT", "OP_DELETE", "OP_INSERT", "OP_UPDATE",
   "OP_S_WHERE", "S_VALUES_ASSIS", "S_FROM", "S_SET", "N_TABLE",
   "N_DATABASE", "$accept", "FINAL", "OPE", "DDL", "DML", "DML_OP",
-  "COLUMN_LIST", "DML_OBJ", "DATA", "CONDITION", "RELATION_OP", "TYPE",
-  "KEY", "INITSET", "DATALIST", "INLIST", YY_NULLPTR
+  "COLUMN_LIST", "DML_OBJ", "CONDITION", "RELATION_OP", "TYPE", "KEY",
+  "INITSET", "DATA", "DATALIST", "INLIST", YY_NULLPTR
 };
 
 static const char *
@@ -631,24 +630,24 @@ static const yytype_int8 yydefact[] =
        4,     5,     0,     0,     0,     0,     0,     0,     1,     3,
       19,    22,    21,     0,     0,     0,     0,     0,    10,     0,
        0,     0,     0,     0,     0,     6,     9,     8,    20,     0,
-       0,     0,     0,     0,     0,    39,     0,    26,    27,    28,
-      29,    30,     0,    12,    23,    24,    36,     0,     0,     0,
-      32,    31,    34,     0,     0,    25,     0,     0,     0,     0,
-       0,    35,    38,     7,    37,    13,    11,    14,    33
+       0,     0,     0,     0,     0,    39,     0,    24,    25,    26,
+      27,    28,     0,    12,    34,    35,    36,     0,     0,     0,
+      30,    29,    32,     0,     0,    23,     0,     0,     0,     0,
+       0,    33,    38,     7,    37,    13,    11,    14,    31
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -34,    50,   -34,   -34,   -34,   -34,    17,   -34,    -5,   -33,
-     -34,   -34,   -34,   -34,   -15,    -8
+     -34,    50,   -34,   -34,   -34,   -34,    17,   -34,   -33,   -34,
+     -34,   -34,   -34,    -5,   -15,    -8
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-       0,     8,     9,    10,    11,    12,    22,    23,    56,    40,
-      52,    62,    71,    45,    57,    46
+       0,     8,     9,    10,    11,    12,    22,    23,    40,    52,
+      62,    71,    45,    56,    57,    46
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -684,10 +683,10 @@ static const yytype_int8 yystos[] =
       36,    37,    38,    31,    32,    31,    32,     5,     0,    34,
        5,    18,    39,    40,     5,     5,     5,     5,    17,    19,
       27,    28,    29,    30,    15,    17,    17,    17,    39,     5,
-      42,    15,     5,    42,     5,    46,    48,     6,     7,     8,
-       9,    10,    43,    17,     3,     4,    41,    47,    27,    27,
-      11,    12,    44,    19,    16,    41,    19,    16,    42,    42,
-      13,    45,    48,    17,    47,    17,    17,    17,    14
+      41,    15,     5,    41,     5,    45,    48,     6,     7,     8,
+       9,    10,    42,    17,     3,     4,    46,    47,    27,    27,
+      11,    12,    43,    19,    16,    46,    19,    16,    41,    41,
+      13,    44,    48,    17,    47,    17,    17,    17,    14
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
@@ -695,8 +694,8 @@ static const yytype_int8 yyr1[] =
 {
        0,    33,    34,    34,    35,    35,    36,    36,    36,    36,
       36,    37,    37,    37,    37,    38,    38,    38,    38,    39,
-      39,    40,    40,    41,    41,    42,    43,    43,    43,    43,
-      43,    44,    44,    45,    46,    46,    47,    47,    48,    48
+      39,    40,    40,    41,    42,    42,    42,    42,    42,    43,
+      43,    44,    45,    45,    46,    46,    47,    47,    48,    48
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
@@ -704,8 +703,8 @@ static const yytype_int8 yyr2[] =
 {
        0,     2,     1,     2,     1,     1,     4,     7,     4,     4,
        3,     7,     5,     7,     7,     1,     1,     1,     1,     1,
-       3,     1,     1,     1,     1,     3,     1,     1,     1,     1,
-       1,     1,     1,     2,     2,     3,     1,     3,     3,     1
+       3,     1,     1,     3,     1,     1,     1,     1,     1,     1,
+       1,     2,     2,     3,     1,     1,     1,     3,     3,     1
 };
 
 
@@ -1169,229 +1168,280 @@ yyreduce:
   switch (yyn)
     {
   case 4: /* OPE: DDL  */
-#line 74 "syntax.y"
+#line 73 "syntax.y"
         {printf("DDL\n");}
-#line 1175 "syntax.tab.c"
+#line 1174 "syntax.tab.c"
     break;
 
   case 5: /* OPE: DML  */
-#line 75 "syntax.y"
+#line 74 "syntax.y"
         {printf("DML\n");}
-#line 1181 "syntax.tab.c"
+#line 1180 "syntax.tab.c"
     break;
 
   case 6: /* DDL: OP_CREATE N_DATABASE ID Y_SEMICOLON  */
-#line 77 "syntax.y"
+#line 76 "syntax.y"
                                         {createDB((yyvsp[-1].str));}
-#line 1187 "syntax.tab.c"
+#line 1186 "syntax.tab.c"
     break;
 
   case 7: /* DDL: OP_CREATE N_TABLE ID Y_LPAR INLIST Y_RPAR Y_SEMICOLON  */
-#line 78 "syntax.y"
-                                                          {createTB((yyvsp[-4].str),(yyvsp[-2].init));}
-#line 1193 "syntax.tab.c"
+#line 77 "syntax.y"
+                                                          {
+                                                        createTB((yyvsp[-4].str),(yyvsp[-2].init_list), typeSize);
+                                                        for (int i = 0; i < typeSize; ++i) {
+                                                            free(TypeVector[i]); // 释放每个元素指向的内存
+                                                        }
+                                                        free(TypeVector); // 释放数组本身
+                                                        TypeVector = NULL; // 避免悬挂指针
+                                                        typeSize = 0;
+                                                        }
+#line 1200 "syntax.tab.c"
     break;
 
   case 8: /* DDL: OP_DROP N_DATABASE ID Y_SEMICOLON  */
-#line 79 "syntax.y"
+#line 86 "syntax.y"
                                       {dropDB((yyvsp[-1].str));}
-#line 1199 "syntax.tab.c"
+#line 1206 "syntax.tab.c"
     break;
 
   case 9: /* DDL: OP_DROP N_TABLE ID Y_SEMICOLON  */
-#line 80 "syntax.y"
+#line 87 "syntax.y"
                                    {dropTB((yyvsp[-1].str));}
-#line 1205 "syntax.tab.c"
+#line 1212 "syntax.tab.c"
     break;
 
   case 10: /* DDL: OP_USE ID Y_SEMICOLON  */
-#line 81 "syntax.y"
+#line 88 "syntax.y"
                           {useDB((yyvsp[-1].str));}
-#line 1211 "syntax.tab.c"
+#line 1218 "syntax.tab.c"
     break;
 
   case 11: /* DML: DML_OP DML_OBJ S_FROM ID OP_S_WHERE CONDITION Y_SEMICOLON  */
-#line 83 "syntax.y"
-                                                             {selectFromTB((yyvsp[-5].column_list),(yyvsp[-3].str),(yyvsp[-1].condition));}
-#line 1217 "syntax.tab.c"
+#line 90 "syntax.y"
+                                                             {
+                                                            selectFromTB((yyvsp[-5].column_list),(yyvsp[-3].str),&(yyvsp[-1].condition),size);
+                                                            for (int i = 0; i < size; ++i) {
+                                                                free(ColumnVector[i]); // 释放每个元素指向的内存
+                                                            }
+                                                            free(ColumnVector); // 释放数组本身
+                                                            ColumnVector = NULL; // 避免悬挂指针
+                                                            size = 0;
+                                                            }
+#line 1232 "syntax.tab.c"
     break;
 
   case 12: /* DML: DML_OP DML_OBJ OP_S_WHERE CONDITION Y_SEMICOLON  */
-#line 84 "syntax.y"
-                                                   {deleteFromTB((yyvsp[-3].column_list),(yyvsp[-1].condition));}
-#line 1223 "syntax.tab.c"
+#line 99 "syntax.y"
+                                                   {deleteFromTB((yyvsp[-3].column_list)[0],&(yyvsp[-1].condition));}
+#line 1238 "syntax.tab.c"
     break;
 
   case 13: /* DML: DML_OP DML_OBJ S_VALUES_ASSIS Y_LPAR DATALIST Y_RPAR Y_SEMICOLON  */
-#line 85 "syntax.y"
-                                                                    {insetIntoTB((yyvsp[-5].column_list),(yyvsp[-2].data_list));}
-#line 1229 "syntax.tab.c"
+#line 100 "syntax.y"
+                                                                    {
+                                                            insertIntoTB((yyvsp[-5].column_list)[0],(yyvsp[-2].data_list),dataSize);
+                                                            for (int i = 0; i < dataSize; ++i) {
+                                                                free(DataVector[i]); // 释放每个元素指向的内存
+                                                            }
+                                                            free(DataVector); // 释放数组本身
+                                                            DataVector = NULL; // 避免悬挂指针
+                                                            dataSize = 0;
+                                                            }
+#line 1252 "syntax.tab.c"
     break;
 
   case 14: /* DML: DML_OP DML_OBJ S_SET CONDITION OP_S_WHERE CONDITION Y_SEMICOLON  */
-#line 86 "syntax.y"
-                                                                   {updateTB((yyvsp[-5].column_list),(yyvsp[-3].condition),(yyvsp[-1].condition));}
-#line 1235 "syntax.tab.c"
+#line 109 "syntax.y"
+                                                                   {updateTB((yyvsp[-5].column_list)[0],&(yyvsp[-3].condition),&(yyvsp[-1].condition));}
+#line 1258 "syntax.tab.c"
     break;
 
   case 19: /* COLUMN_LIST: ID  */
-#line 93 "syntax.y"
+#line 116 "syntax.y"
                {
                 ColumnVector = (char**)realloc(ColumnVector, sizeof(char*) * (size + 1));
                 ColumnVector[size++] = strdup((yyvsp[0].str));
                 (yyval.column_list) = ColumnVector;
             }
-#line 1245 "syntax.tab.c"
+#line 1268 "syntax.tab.c"
     break;
 
   case 20: /* COLUMN_LIST: ID Y_COMMA COLUMN_LIST  */
-#line 98 "syntax.y"
+#line 121 "syntax.y"
                                    {
                 ColumnVector = (char**)realloc(ColumnVector, sizeof(char*) * (size + 1));
                 ColumnVector[size++] = strdup((yyvsp[-2].str));
                 (yyval.column_list) = ColumnVector;
             }
-#line 1255 "syntax.tab.c"
+#line 1278 "syntax.tab.c"
     break;
 
   case 21: /* DML_OBJ: COLUMN_LIST  */
-#line 105 "syntax.y"
+#line 128 "syntax.y"
                     {(yyval.column_list) = (yyvsp[0].column_list);}
-#line 1261 "syntax.tab.c"
+#line 1284 "syntax.tab.c"
     break;
 
   case 22: /* DML_OBJ: Y_ALL  */
-#line 106 "syntax.y"
-              {(yyval.column_list) = ColumnVector;}
-#line 1267 "syntax.tab.c"
+#line 129 "syntax.y"
+              {(yyval.column_list) = NULL;}
+#line 1290 "syntax.tab.c"
     break;
 
-  case 23: /* DATA: num_INT  */
-#line 108 "syntax.y"
-             {data.data.num_int = (yyvsp[0].ivalue);data.flag = 0;(yyval.data) = data;}
-#line 1273 "syntax.tab.c"
+  case 23: /* CONDITION: ID RELATION_OP DATA  */
+#line 132 "syntax.y"
+                              {condition.name = (char*)malloc(strlen((yyvsp[-2].str)) + 1);strcpy(condition.name, (yyvsp[-2].str));condition.relation_op = (yyvsp[-1].relation_op);condition.data = (yyvsp[0].data);(yyval.condition) = condition;
+                                // printf("condition.name:%s\n",condition.name);
+                                //printf("$1:%s\n",$1);
+                                }
+#line 1299 "syntax.tab.c"
     break;
 
-  case 24: /* DATA: data_STRING  */
-#line 109 "syntax.y"
-                 {strcpy(data.data.str_data,(yyvsp[0].str));data.flag = 1;(yyval.data) = data;}
-#line 1279 "syntax.tab.c"
+  case 24: /* RELATION_OP: Y_EQ  */
+#line 137 "syntax.y"
+                 {(yyval.relation_op) = EQ;}
+#line 1305 "syntax.tab.c"
     break;
 
-  case 25: /* CONDITION: ID RELATION_OP DATA  */
-#line 111 "syntax.y"
-                              {condition.name = (char*)malloc(sizeof(*(yyvsp[-2].str)));condition.relation_op = (yyvsp[-1].relation);condition.data = (yyvsp[0].data);(yyval.condition) = condition;}
-#line 1285 "syntax.tab.c"
+  case 25: /* RELATION_OP: Y_GREAT  */
+#line 138 "syntax.y"
+                    {(yyval.relation_op) = GREAT;}
+#line 1311 "syntax.tab.c"
     break;
 
-  case 26: /* RELATION_OP: Y_EQ  */
-#line 113 "syntax.y"
-                 {(yyval.relation) = 1;}
-#line 1291 "syntax.tab.c"
+  case 26: /* RELATION_OP: Y_GREATEQ  */
+#line 139 "syntax.y"
+                      {(yyval.relation_op) = GREATEQ;}
+#line 1317 "syntax.tab.c"
     break;
 
-  case 27: /* RELATION_OP: Y_GREAT  */
-#line 114 "syntax.y"
-                    {(yyval.relation) = 2;}
-#line 1297 "syntax.tab.c"
+  case 27: /* RELATION_OP: Y_LESS  */
+#line 140 "syntax.y"
+                   {(yyval.relation_op) = LESS;}
+#line 1323 "syntax.tab.c"
     break;
 
-  case 28: /* RELATION_OP: Y_GREATEQ  */
-#line 115 "syntax.y"
-                      {(yyval.relation) = 3;}
-#line 1303 "syntax.tab.c"
+  case 28: /* RELATION_OP: Y_LESSEQ  */
+#line 141 "syntax.y"
+                     {(yyval.relation_op) = LESSEQ;}
+#line 1329 "syntax.tab.c"
     break;
 
-  case 29: /* RELATION_OP: Y_LESS  */
-#line 116 "syntax.y"
-                   {(yyval.relation) = 4;}
-#line 1309 "syntax.tab.c"
-    break;
-
-  case 30: /* RELATION_OP: Y_LESSEQ  */
-#line 117 "syntax.y"
-                     {(yyval.relation) = 5;}
-#line 1315 "syntax.tab.c"
-    break;
-
-  case 31: /* TYPE: Y_INT  */
-#line 119 "syntax.y"
+  case 29: /* TYPE: Y_INT  */
+#line 143 "syntax.y"
            {(yyval.ivalue) = 0;}
-#line 1321 "syntax.tab.c"
+#line 1335 "syntax.tab.c"
     break;
 
-  case 32: /* TYPE: Y_STRING  */
-#line 120 "syntax.y"
+  case 30: /* TYPE: Y_STRING  */
+#line 144 "syntax.y"
               {(yyval.ivalue) = 1;}
-#line 1327 "syntax.tab.c"
+#line 1341 "syntax.tab.c"
     break;
 
-  case 34: /* INITSET: ID TYPE  */
-#line 124 "syntax.y"
+  case 32: /* INITSET: ID TYPE  */
+#line 148 "syntax.y"
                 {
-        init.name = (char*)malloc(sizeof(*(yyvsp[-1].str)));
+        init.name = (char*)malloc(sizeof(strlen((yyvsp[-1].str)) + 1));
         strcpy(init.name,(yyvsp[-1].str));
         init.flag=0;init.type=(yyvsp[0].ivalue);
-        // TypeVector.push_back(init);
-        (yyval.data) = init;
+        (yyval.init) = init;
     }
-#line 1339 "syntax.tab.c"
+#line 1352 "syntax.tab.c"
     break;
 
-  case 35: /* INITSET: ID TYPE KEY  */
-#line 131 "syntax.y"
+  case 33: /* INITSET: ID TYPE KEY  */
+#line 154 "syntax.y"
                     {
-        init.name = (char*)malloc(sizeof(*(yyvsp[-2].str)));
+        init.name = (char*)malloc(sizeof(strlen((yyvsp[-2].str)) + 1));
         strcpy(init.name,(yyvsp[-2].str));
         init.flag=1;init.type=(yyvsp[-1].ivalue);
-        TypeVector.push_back(init);
-        (yyval.data) = init;
+        (yyval.init) = init;
     }
-#line 1351 "syntax.tab.c"
+#line 1363 "syntax.tab.c"
+    break;
+
+  case 34: /* DATA: num_INT  */
+#line 161 "syntax.y"
+             {data.data.num_int = (yyvsp[0].ivalue);data.flag = 0;(yyval.data) = data;}
+#line 1369 "syntax.tab.c"
+    break;
+
+  case 35: /* DATA: data_STRING  */
+#line 162 "syntax.y"
+                 {strcpy(data.data.str_data,(yyvsp[0].str));data.flag = 1;(yyval.data) = data;}
+#line 1375 "syntax.tab.c"
     break;
 
   case 36: /* DATALIST: DATA  */
-#line 139 "syntax.y"
+#line 164 "syntax.y"
               {
-            DataVector = (Data_Type*)realloc(DataVector, sizeof(Data_Type) * (dataSize + 1));
-            DataVector[dataSize++] = (yyvsp[0].data);
+            DataVector = (struct Data_Type**)realloc(DataVector, sizeof(struct Data_Type*) * (dataSize + 1));
+            
+            DataVector[dataSize] = (struct Data_Type*)malloc(sizeof(struct Data_Type));
+            // printf("111");
+            DataVector[dataSize]->data = (yyvsp[0].data).data;
+            // DataVector[dataSize]->name = (char*)malloc(strlen($1.name) + 1);
+            // strcpy(DataVector[dataSize]->name,$1.name);
+            DataVector[dataSize]->flag = (yyvsp[0].data).flag;
+            dataSize++; 
             (yyval.data_list) = DataVector;
+            // printf("2%s\n",DataVector[dataSize-1]->name);
         }
-#line 1361 "syntax.tab.c"
+#line 1393 "syntax.tab.c"
     break;
 
   case 37: /* DATALIST: DATA Y_COMMA DATALIST  */
-#line 144 "syntax.y"
+#line 177 "syntax.y"
                                {
-            DataVector = (Data_Type*)realloc(DataVector, sizeof(Data_Type) * (dataSize + 1));
-            DataVector[dataSize++] = (yyvsp[-2].data);
+            DataVector = (struct Data_Type**)realloc(DataVector, sizeof(struct Data_Type*) * (dataSize + 1));
+            
+            DataVector[dataSize] = (struct Data_Type*)malloc(sizeof(struct Data_Type));
+            // printf("111");
+            DataVector[dataSize]->data = (yyvsp[-2].data).data;
+            // DataVector[dataSize]->name = (char*)malloc(strlen($1.name) + 1);
+            // strcpy(DataVector[dataSize]->name,$1.name);
+            DataVector[dataSize]->flag = (yyvsp[-2].data).flag;
+            dataSize++; 
             (yyval.data_list) = DataVector;
+            // printf("2%s\n",DataVector[dataSize-1]->name);
         }
-#line 1371 "syntax.tab.c"
+#line 1411 "syntax.tab.c"
     break;
 
   case 38: /* INLIST: INITSET Y_COMMA INLIST  */
-#line 150 "syntax.y"
+#line 191 "syntax.y"
                               {
-            TypeVector = (Init_List*)realloc(TypeVector, sizeof(Init_List) * (typeSize + 1));
-            TypeVector[typeSize++] = (yyvsp[-2].data);
-            (yyval.init) = TypeVector;
+            TypeVector = (struct Init_List**)realloc(TypeVector, sizeof(struct Init_List*) * (typeSize + 1));
+            TypeVector[typeSize] = (struct Init_List*)malloc(sizeof(struct Init_List));
+            TypeVector[typeSize]->name = (char*)malloc(strlen((yyvsp[-2].init).name) + 1);
+            strcpy(TypeVector[typeSize]->name,(yyvsp[-2].init).name);
+            TypeVector[typeSize]->flag = (yyvsp[-2].init).flag;
+            TypeVector[typeSize]->type = (yyvsp[-2].init).type;
+            typeSize++;
+            (yyval.init_list) = TypeVector;
         }
-#line 1381 "syntax.tab.c"
+#line 1426 "syntax.tab.c"
     break;
 
   case 39: /* INLIST: INITSET  */
-#line 155 "syntax.y"
+#line 201 "syntax.y"
                {
-            TypeVector = (Init_List*)realloc(TypeVector, sizeof(Init_List) * (typeSize + 1));
-            TypeVector[typeSize++] = (yyvsp[0].data);
-            (yyval.init) = TypeVector;
+            TypeVector = (struct Init_List**)realloc(TypeVector, sizeof(struct Init_List*) * (typeSize + 1));
+            TypeVector[typeSize] = (struct Init_List*)malloc(sizeof(struct Init_List));
+            TypeVector[typeSize]->name = (char*)malloc(strlen((yyvsp[0].init).name) + 1);
+            strcpy(TypeVector[typeSize]->name,(yyvsp[0].init).name);
+            TypeVector[typeSize]->flag = (yyvsp[0].init).flag;
+            TypeVector[typeSize]->type = (yyvsp[0].init).type;
+            typeSize++;
+            (yyval.init_list) = TypeVector;
         }
-#line 1391 "syntax.tab.c"
+#line 1441 "syntax.tab.c"
     break;
 
 
-#line 1395 "syntax.tab.c"
+#line 1445 "syntax.tab.c"
 
       default: break;
     }
@@ -1584,5 +1634,5 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 160 "syntax.y"
+#line 212 "syntax.y"
 
