@@ -3,8 +3,7 @@
     #include "stdlib.h"
     #include "string.h"
     #include "syntax.tab.h"
-    
-    
+    #include "DATA.h"
 %}
 
 white [\n\t ]
@@ -15,10 +14,9 @@ INT [\+-]?[1-9][0-9]*
 
 %%
 {white} {}
-{INT} {printf("%d\n",atoi(yytext));return num_INT;}
-[\+-]?0 {printf("%d\n",atoi(yytext));return num_INT;}
+{INT} {yylval.ivalue = atoi(yytext);return num_INT;}
+[\+-]?0 {yylval.ivalue = 0;return num_INT;}
 {ID} {
-        printf("%s\n",yytext);
         //数据类型声明
         if(strcmp(yytext,"INT")==0 || strcmp(yytext,"int") == 0) {return Y_INT;}
         else if(strcmp(yytext,"VARCHAR")==0 || strcmp(yytext,"varchar")==0 || strcmp(yytext,"string") == 0) {return Y_STRING;}
@@ -47,14 +45,18 @@ INT [\+-]?[1-9][0-9]*
 
 
 
-"\""+.+"\"" {printf("%s\n",yytext);return data_STRING;}
-"(" {printf("%s\n",yytext);return Y_LPAR;}
-")" {printf("%s\n",yytext);return Y_RPAR;}
-";" {printf("%s\n",yytext);return Y_SEMICOLON;}
+"\""+.+"\"" {return data_STRING;}
+"(" {return Y_LPAR;}
+")" {return Y_RPAR;}
+";" {return Y_SEMICOLON;}
 "-- "+.+\n {printf("注释:%s\n",yytext);}
-"*" {printf("%s\n",yytext);return Y_ALL;}
-"=" {printf("%s\n",yytext);return Y_EQ;}
-"," {printf("%s\n",yytext);return Y_COMMA;}
+"*" {return Y_ALL;}
+"=" {return Y_EQ;}
+"," {return Y_COMMA;}
+">=" {return Y_GREATEQ;}
+"<=" {return Y_LESSEQ;}
+">" {return Y_GREAT;}
+"<" {return Y_LESS;}
 
 
 %%

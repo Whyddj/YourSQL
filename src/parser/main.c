@@ -2,9 +2,8 @@
 #include "string.h"
 #include "stdlib.h"
 
-extern FILE* yyin;
-extern int yyparse();
-extern int yylex();
+FILE* yyin;
+int yyparse();
 
 
 int main(int argc, char **argv)
