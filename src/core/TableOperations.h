@@ -5,6 +5,8 @@
 #include <vector>
 #include <map>
 
+#define BASE_PATH "../data/"
+
 enum class DataType {
     StringType,
     IntType
@@ -12,7 +14,7 @@ enum class DataType {
 
 class TableOperations {
 public:
-    TableOperations();
+    TableOperations(const std::string& dbName);
     ~TableOperations();
 
     void createTable(const std::string& tableName, const std::map<std::string, DataType>& columns, const std::string& primaryKey);
@@ -22,6 +24,9 @@ public:
     void insertIntoTable(const std::string& tableName, const std::vector<std::string>& values);
     void deleteFromTable(const std::string& tableName, const std::string& condition);
     void updateTable(const std::string& tableName, const std::string& column, const std::string& value, const std::string& condition);
+
+private:
+    std::string currentDatabase;
 };
 
 #endif // TABLE_OPERATIONS_H

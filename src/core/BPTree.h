@@ -5,10 +5,8 @@
 #include <iostream>
 #include <memory>
 
-
-
 /**
- * @brief B+树的实现，使用智能智能进行优化
+ * @brief B+树的实现，使用智能指针进行优化
 */
 template <typename key_t, typename value_t>
 class BPlusTree {

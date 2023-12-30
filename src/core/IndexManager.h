@@ -2,7 +2,7 @@
  * IndexManager.h
  * @author why
  * @date 2023.12.28
- * @brief 管理索引
+ * @brief 分页管理索引
 */
 
 #include <ios>
@@ -193,23 +193,6 @@ public:
         metaPage.freePages.push(page_id);
     }
 
-    // 写入一个新页面
-
-    // 加入新节点
-    void insertNode(uint32_t key, u_int32_t value) {
-
-    }
-
-    // 删除节点
-    void deleteNode(uint32_t key) {
-
-    }
-
-    // 查找节点
-    IndexPage findNode(uint32_t key) {
-
-    }
-
 
 private:
     std::string filename;
@@ -301,49 +284,7 @@ private:
         file.seekp(page_id * PAGE_SIZE);
         file.write(data.data(), data.size());
     }
-
-    void split(IndexPage& node) {
-
-    }
-
-    IndexPage& find_leaf(uint32_t key) {
-
-    }
-
-    void remove_from_leaf(IndexPage& node, uint32_t key) {
-
-    }
-
-    void borrow_from_left_leaf(IndexPage& node, int i) {
-
-    }
-
-    void borrow_from_right_leaf(IndexPage& node, int i) {
-
-    }
-
-    void merge_leaf(IndexPage& left, IndexPage& right, int i) {
-
-    }
-
-    void adjust(IndexPage& node) {
-
-    }
-
-    void borrow_from_left(IndexPage& node, int i) {
-
-    }
-
-    void borrow_from_right(IndexPage& node, int i) {
-
-    }
-
-    void merge(IndexPage& left, IndexPage& right, int i) {
-
-    }
-
-
-
+    
     // 打开文件
     void openFile(std::fstream& file, const std::string& filename) {
         util::log(util::DEBUG, "IndexManager: opening file: ", filename);

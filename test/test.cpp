@@ -3,62 +3,87 @@
 #include "../src/core/BPlusTree.h"
 #include "../src/core/DiskManager.h"
 #include "../src/core/IndexManager.h"
+#include "../src/core/DatabaseOperations.h"
+#include <chrono>
 
 using namespace std;
-
+// 一些单元测试
 void insertTest();
+void InsertRomoveTest();
 void randomInsertTest();
-void insertTest2();
 void searchTest();
-
 void testReadWrite();
 void IndexManagerTest();
-
 void testSerize();
+void databaseOpTest();
 
 int main() {
+    auto start = std::chrono::high_resolution_clock::now();
     // insertTest();
-    randomInsertTest();
+    // randomInsertTest();
     // insertTest2();
     // searchTest();
 
     // testReadWrite();
     // IndexManagerTest();
-    // testSerize();
+    testSerize();
+    // InsertRomoveTest();
+    // databaseOpTest();
+
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    std::cout << "Time taken by function: "
+              << duration.count() << " microseconds" << std::endl;
+
+    
 
     return 0;
 }
 
+void databaseOpTest() {
+    DatabaseOperations* databaseOperations = new DatabaseOperations();
+    databaseOperations->createDatabase("test");
+    databaseOperations->useDatabase("test");
+    databaseOperations->createDatabase("test2");
+    databaseOperations->useDatabase("test2");
+    databaseOperations->dropDatabase("test");
+    databaseOperations->createDatabase("test3");
+    databaseOperations->createDatabase("test4");
+    databaseOperations->showDatabases();
+}
+
 void testSerize() {
-    BPlusTree<uint32_t, uint32_t> tree(4);
+    BPlusTree<uint32_t, uint32_t> tree(100);
     // 插入一些数据
-    tree.insert(1, 100);
-    tree.insert(2, 200);
-    tree.insert(3, 300);
-    tree.insert(4, 400);
-    // tree.insert(5, 500);
-    // tree.insert(6, 600);
-    // tree.insert(7, 700);
-    // tree.insert(8, 800);
-    // tree.insert(9, 900);
-    // tree.insert(10, 1000);
+    srand(time(NULL));
+    for (int i = 0; i < 221088; i++) {
+        int key = rand() % 1000000;
+        tree.insert(key, key);
+    }
+    tree.insert(100, 100);
 
     // 序列化树到文件
     std::ofstream outFile("bplustree.dat", std::ios::binary);
     tree.serialize(outFile);
     outFile.close();
-    tree.print();
+    // tree.print();
 
     // 创建一个新的 B+树实例来进行反序列化
-    BPlusTree<uint32_t, uint32_t> newTree(4);
+    BPlusTree<uint32_t, uint32_t> newTree(100);
 
     // 从文件反序列化树
     std::ifstream inFile("bplustree.dat", std::ios::binary);
     newTree.deserialize(inFile);
     inFile.close();
-    newTree.print();
+    // newTree.print();
 
-
+    auto start = std::chrono::high_resolution_clock::now();
+    // 测试搜索
+    std::cout << newTree.search(100) << std::endl;
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop-start);
+    std::cout << "Time taken by search 100: "
+              << duration.count() << " microseconds" << std::endl;
 }
 
 void IndexManagerTest() {
@@ -161,118 +186,19 @@ void searchTest() {
     std::cout << tree.search(26) << std::endl;
 }
 
-void insertTest2() {
-    BPlusTree<int, int> tree(4);
-    tree.insert(1, 1);
-    tree.print();
-    tree.insert(2, 2);
-    tree.print();
-    tree.insert(3, 3);
-    tree.print();
-    tree.insert(4, 4);
-    tree.print();
-    tree.insert(5, 5);
-    tree.print();
-    tree.insert(6, 6);
-    tree.print();
-    tree.insert(7, 7);
-    tree.print();
-    tree.insert(8, 8);
-    tree.print();
-    tree.insert(9, 9);
-    tree.print();
-    tree.insert(10, 10);
-    tree.print();
-    tree.remove(6);
-    tree.print();
-    tree.remove(5);
-    tree.print();
-    tree.remove(4);
-    tree.print();
-    tree.remove(3);
-    tree.print();
-    tree.remove(2);
-    tree.print();
-    tree.remove(1);
-    tree.print();
-    tree.insert(11, 11);
-    tree.print();
-    tree.insert(12, 12);
-    tree.print();
-    tree.insert(13, 13);
-    tree.print();
-    tree.insert(14, 14);
-    tree.print();
-    tree.insert(15, 15);
-    tree.print();
-    tree.insert(16, 16);
-    tree.insert(17, 17);
-    tree.insert(18, 18);
-    tree.insert(19, 19);
-    tree.insert(20, 20);
-    tree.insert(21, 21);
-    tree.insert(22, 22);
-    tree.insert(23, 23);
-    tree.insert(24, 24);
-    tree.insert(25, 25);
-    tree.insert(26, 26);
-    tree.insert(27, 27);
-    tree.insert(28, 28);
-    tree.insert(29, 29);
-    tree.insert(30, 30);
-    tree.insert(31, 31);
-    tree.insert(32, 32);
-    tree.insert(33, 33);
-    tree.insert(34, 34);
-    tree.insert(35, 35);
-    tree.insert(36, 36);
-    tree.insert(37, 37);
-    tree.insert(38, 38);
-    tree.insert(39, 39);
-    tree.insert(40, 40);
-    tree.insert(41, 41);
-    tree.insert(42, 42);
-    tree.insert(43, 43);
-    tree.insert(44, 44);
-    tree.insert(45, 45);
-    tree.insert(46, 46);
-    tree.insert(47, 47);
-    tree.insert(48, 48);
-    tree.insert(49, 49);
-    tree.insert(50, 50);
-    tree.insert(51, 51);
-    tree.insert(52, 52);
-    tree.insert(53, 53);
-    tree.insert(54, 54);
-
-    tree.print();
-}
-
 void insertTest() {
-    BPlusTree<int, int> tree(4);
-    tree.insert(1, 1);
-    tree.print();
-    tree.insert(2, 2);
-    tree.print();
-    tree.insert(3, 3);
-    tree.print();
-    tree.insert(4, 4);
-    tree.print();
-    tree.insert(5, 5);
-    tree.print();
-    tree.insert(6, 6);
-    tree.print();
-    tree.insert(7, 7);
-    tree.print();
-    tree.insert(8, 8);
-    tree.print();
-    tree.insert(9, 9);
-    tree.print();
-    tree.insert(10, 10);
+    BPlusTree<int, int> tree(100);
+    // 生成一些随机数插入
+    srand(time(NULL));
+    for (int i = 0; i < 500; i++) {
+        int key = rand() % 1000;
+        tree.insert(key, key);
+    }
+
     tree.print();
 }
 
-void randomInsertTest() {
+void InsertRomoveTest() {
     BPlusTree<int, int> tree(3, {{1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}, {7, 7}, {8, 8}, {9, 9}, {10, 10}});
     tree.remove(4);
     tree.remove(2);
