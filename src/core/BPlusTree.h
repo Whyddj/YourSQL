@@ -12,6 +12,7 @@
 
 #include <vector>
 #include <iostream>
+#include<limits>
 
 /**
  * @brief B+树的实现
@@ -105,6 +106,22 @@ public:
         }
     }
 
+    std::vector<value_t> findLessThan(const key_t& key) {
+        return findRange(std::numeric_limits<key_t>::min(), key, false);
+    }
+
+    std::vector<value_t> findLessThanOrEqual(const key_t& key) {
+        return findRange(std::numeric_limits<key_t>::min(), key, true);
+    }
+
+    std::vector<value_t> findGreaterThan(const key_t& key) {
+        return findRange(key, std::numeric_limits<key_t>::max(), false, false);
+    }
+
+    std::vector<value_t> findGreaterThanOrEqual(const key_t& key) {
+        return findRange(key, std::numeric_limits<key_t>::max(), true, true);
+    }
+
     /**
      * @brief 从B+树中删除一个键值对
     */
@@ -172,6 +189,20 @@ public:
             // throw "Key not found";
             // return nullptr;
             throw std::invalid_argument("Key not found");
+        }
+        return node->values[i];
+    }
+
+    value_t searchForData(const key_t& key) {
+        auto node = find_leaf(key);
+        int i = 0;
+        while (i < node->size && key > node->keys[i]) {
+            i++;
+        }
+        if (node->keys[i] != key) {
+            // throw "Key not found";
+            // return nullptr;
+            return -1;
         }
         return node->values[i];
     }
@@ -362,6 +393,49 @@ private:
         }
         return node;
     }
+
+    std::vector<value_t> findRange(const key_t& lower, const key_t& upper, bool includeUpper, bool startFromKey = true) {
+        std::vector<value_t> result;
+        Node* node = this->root;
+
+        if (startFromKey) {
+            // 定位到包含lower或第一个大于lower的键的叶子节点
+            node = find_near_leaf(lower);
+        } else {
+            // 定位到树的最左侧叶子节点
+            while (!node->is_leaf) {
+                node = node->children[0];
+            }
+        }
+
+        // 从定位的节点开始，遍历所有叶子节点
+        while (node != nullptr) {
+            for (int i = 0; i < node->size; ++i) {
+                if (node->keys[i] >= lower && 
+                    (node->keys[i] < upper || (includeUpper && node->keys[i] == upper))) {
+                    result.push_back(node->values[i]);
+                }
+            }
+            node = node->next;
+        }
+
+        return result;
+    }
+
+    Node* find_near_leaf(const key_t& key) {
+        Node* node = this->root;
+        // 找到叶子节点
+        while (!node->is_leaf) {
+            int i = 0;
+            while (i < node->size && key >= node->keys[i]) {
+                i++;
+            }
+            node = node->children[i];
+        }
+        // 无需抛出异常，直接返回找到的叶子节点
+        return node;
+    }
+
 
     // 从叶子节点中删除key
     void remove_from_leaf(Node* leaf, const key_t& key) {

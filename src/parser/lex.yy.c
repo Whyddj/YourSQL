@@ -538,14 +538,15 @@ char *yytext;
     #include "stdlib.h"
     #include "string.h"
     #include "syntax.tab.h"
-    #include "DATA.h"
+    #include "data.h"
 
     //[Ee][Xx][Ii][Tt] { return OP_EXIT; }
     //[Ss][Hh][Oo][Ww] { return OP_SHOW;}
     int yyparse();
-#line 547 "lex.yy.c"
+    void yyerror(const char *str);
+#line 548 "lex.yy.c"
 /* DATA_STR [a-zA-Z_0-9\,\.\+-=; ]+ */
-#line 549 "lex.yy.c"
+#line 550 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -762,9 +763,9 @@ YY_DECL
 		}
 
 	{
-#line 20 "auto_lex.l"
+#line 21 "auto_lex.l"
 
-#line 768 "lex.yy.c"
+#line 769 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -824,210 +825,220 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 21 "auto_lex.l"
-{printf("yoursql> ");}
+#line 22 "auto_lex.l"
+{printf("\nyoursql> ");}
 	YY_BREAK
 case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
-#line 22 "auto_lex.l"
+#line 23 "auto_lex.l"
 {}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 23 "auto_lex.l"
+#line 24 "auto_lex.l"
 {yylval.ivalue = atoi(yytext);return num_INT;}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 24 "auto_lex.l"
+#line 25 "auto_lex.l"
 {yylval.ivalue = 0;return num_INT;}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 25 "auto_lex.l"
+#line 26 "auto_lex.l"
 { return OP_SELECT; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 26 "auto_lex.l"
+#line 27 "auto_lex.l"
 { return OP_INSERT; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 27 "auto_lex.l"
+#line 28 "auto_lex.l"
 { return OP_UPDATE; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 28 "auto_lex.l"
+#line 29 "auto_lex.l"
 { return OP_DELETE; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 29 "auto_lex.l"
+#line 30 "auto_lex.l"
 { return OP_CREATE; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 30 "auto_lex.l"
+#line 31 "auto_lex.l"
 { return OP_DROP; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 31 "auto_lex.l"
+#line 32 "auto_lex.l"
 { return OP_USE; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 32 "auto_lex.l"
+#line 33 "auto_lex.l"
 { return OP_S_WHERE; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 33 "auto_lex.l"
+#line 34 "auto_lex.l"
 { return S_VALUES_ASSIS; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 34 "auto_lex.l"
+#line 35 "auto_lex.l"
 { return S_FROM; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 35 "auto_lex.l"
+#line 36 "auto_lex.l"
 { return S_SET; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 36 "auto_lex.l"
+#line 37 "auto_lex.l"
 { return N_TABLE; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 37 "auto_lex.l"
+#line 38 "auto_lex.l"
 { return N_DATABASE; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 39 "auto_lex.l"
+#line 40 "auto_lex.l"
 { return EXIT; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 40 "auto_lex.l"
+#line 41 "auto_lex.l"
 { return OP_SHOW;}
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 41 "auto_lex.l"
+#line 42 "auto_lex.l"
 { return N_TABLES; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 42 "auto_lex.l"
+#line 43 "auto_lex.l"
 { return N_DATABASES; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 45 "auto_lex.l"
+#line 46 "auto_lex.l"
 { return KEY_type; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 46 "auto_lex.l"
+#line 47 "auto_lex.l"
 { return KEY_symbol; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 47 "auto_lex.l"
+#line 48 "auto_lex.l"
 { return Y_INT; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 48 "auto_lex.l"
+#line 49 "auto_lex.l"
 { return Y_STRING; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 49 "auto_lex.l"
+#line 50 "auto_lex.l"
 { return Y_STRING; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 50 "auto_lex.l"
+#line 51 "auto_lex.l"
 {
-    yylval.str = strdup(yytext); 
+    //yylval.str = strdup(yytext);
+    if (strlen(yytext) > 254){
+        yyerror("ID too long");
+    }
+    strcpy(yylval.str,yytext);
     return ID; 
     }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 57 "auto_lex.l"
-{return data_STRING;}
+#line 62 "auto_lex.l"
+{
+    //yylval.str = strdup(yytext);
+    if (strlen(yytext) > 254){
+        yyerror("string too long");
+    }
+    strcpy(yylval.string_value,yytext);
+    return data_STRING;}
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 58 "auto_lex.l"
+#line 69 "auto_lex.l"
 {return Y_LPAR;}
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 59 "auto_lex.l"
+#line 70 "auto_lex.l"
 {return Y_RPAR;}
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 60 "auto_lex.l"
+#line 71 "auto_lex.l"
 {return Y_SEMICOLON;}
 	YY_BREAK
 case 32:
 /* rule 32 can match eol */
 YY_RULE_SETUP
-#line 61 "auto_lex.l"
+#line 72 "auto_lex.l"
 {printf("注释:%s\n",yytext);}
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 62 "auto_lex.l"
+#line 73 "auto_lex.l"
 {return Y_ALL;}
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 63 "auto_lex.l"
+#line 74 "auto_lex.l"
 {return Y_EQ;}
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 64 "auto_lex.l"
+#line 75 "auto_lex.l"
 {return Y_COMMA;}
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 65 "auto_lex.l"
+#line 76 "auto_lex.l"
 {return Y_GREATEQ;}
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 66 "auto_lex.l"
+#line 77 "auto_lex.l"
 {return Y_LESSEQ;}
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 67 "auto_lex.l"
+#line 78 "auto_lex.l"
 {return Y_GREAT;}
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 68 "auto_lex.l"
+#line 79 "auto_lex.l"
 {return Y_LESS;}
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 71 "auto_lex.l"
+#line 82 "auto_lex.l"
 ECHO;
 	YY_BREAK
-#line 1031 "lex.yy.c"
+#line 1042 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2032,10 +2043,10 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 71 "auto_lex.l"
+#line 82 "auto_lex.l"
 
 
-void yyerror(char *str){
+void yyerror(const char *str){
     fprintf(stderr,"error:%s\n",str);
     yyparse();
 }

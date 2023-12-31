@@ -76,7 +76,7 @@
     // #include <string>
     // #include <vector>
     // #include <map>
-    #include "DATA.h"
+    #include "data.h"
     #include "parse_operations.h"
 
     // std::vector<std::string> ColumnVector;
@@ -93,7 +93,7 @@
     struct Init_List init;
     struct Condition condition;
     int yylex();
-    void yyerror(char* str);
+    void yyerror(const char* str);
 
 #line 99 "syntax.tab.c"
 
@@ -127,8 +127,8 @@ enum yysymbol_kind_t
   YYSYMBOL_YYerror = 1,                    /* error  */
   YYSYMBOL_YYUNDEF = 2,                    /* "invalid token"  */
   YYSYMBOL_num_INT = 3,                    /* num_INT  */
-  YYSYMBOL_data_STRING = 4,                /* data_STRING  */
-  YYSYMBOL_ID = 5,                         /* ID  */
+  YYSYMBOL_ID = 4,                         /* ID  */
+  YYSYMBOL_data_STRING = 5,                /* data_STRING  */
   YYSYMBOL_Y_EQ = 6,                       /* Y_EQ  */
   YYSYMBOL_Y_GREAT = 7,                    /* Y_GREAT  */
   YYSYMBOL_Y_GREATEQ = 8,                  /* Y_GREATEQ  */
@@ -503,7 +503,7 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  22
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   74
+#define YYLAST   71
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  37
@@ -565,9 +565,9 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    70,    70,    71,    73,    74,    75,    77,    78,    88,
-      89,    90,    92,   101,   110,   111,   120,   121,   122,   124,
-     125,   126,   127,   128,   130,   135,   142,   143,   146,   151,
+       0,    72,    72,    73,    75,    76,    77,    79,    80,    90,
+      91,    92,    94,   103,   112,   113,   122,   123,   124,   126,
+     127,   128,   129,   130,   132,   137,   144,   145,   148,   151,
      152,   153,   154,   155,   157,   158,   160,   162,   168,   175,
      176,   178,   191,   205,   215
 };
@@ -585,11 +585,11 @@ static const char *yysymbol_name (yysymbol_kind_t yysymbol) YY_ATTRIBUTE_UNUSED;
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "\"end of file\"", "error", "\"invalid token\"", "num_INT",
-  "data_STRING", "ID", "Y_EQ", "Y_GREAT", "Y_GREATEQ", "Y_LESS",
-  "Y_LESSEQ", "Y_STRING", "Y_INT", "KEY_type", "KEY_symbol", "Y_LPAR",
-  "Y_RPAR", "Y_SEMICOLON", "Y_ALL", "Y_COMMA", "OP_CREATE", "OP_DROP",
-  "OP_USE", "OP_SELECT", "OP_DELETE", "OP_INSERT", "OP_UPDATE", "OP_SHOW",
+  "\"end of file\"", "error", "\"invalid token\"", "num_INT", "ID",
+  "data_STRING", "Y_EQ", "Y_GREAT", "Y_GREATEQ", "Y_LESS", "Y_LESSEQ",
+  "Y_STRING", "Y_INT", "KEY_type", "KEY_symbol", "Y_LPAR", "Y_RPAR",
+  "Y_SEMICOLON", "Y_ALL", "Y_COMMA", "OP_CREATE", "OP_DROP", "OP_USE",
+  "OP_SELECT", "OP_DELETE", "OP_INSERT", "OP_UPDATE", "OP_SHOW",
   "OP_S_WHERE", "S_VALUES_ASSIS", "S_FROM", "S_SET", "N_TABLE",
   "N_DATABASE", "EXIT", "N_TABLES", "N_DATABASES", "$accept", "FINAL",
   "OPE", "DDL", "DML", "DML_OP", "COLUMN_LIST", "DML_OBJ", "CONDITION",
@@ -617,14 +617,14 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-     -19,    -9,    -4,    20,   -40,   -40,   -40,   -40,    -5,   -40,
-      36,   -19,   -40,   -40,     4,    32,    33,    34,    35,    24,
-      25,    26,   -40,   -40,    27,   -40,   -40,   -17,    30,    31,
-      37,    38,   -40,   -40,   -40,    39,    42,    41,    44,    42,
-      45,   -40,   -40,   -40,   -40,    10,    40,    29,    -7,    43,
-      23,    46,    47,   -40,   -40,   -40,   -40,   -40,    29,   -40,
-     -40,   -40,    48,    50,   -40,    42,    42,   -40,   -40,    49,
-      45,    51,   -40,    29,    52,    53,    55,    59,   -40,   -40,
+     -19,    -4,    -2,    21,   -40,   -40,   -40,   -40,    -3,   -40,
+      36,   -19,   -40,   -40,     5,    33,    34,    35,    37,    25,
+      26,    27,   -40,   -40,    28,   -40,   -40,   -17,    30,    29,
+      31,    32,   -40,   -40,   -40,    46,    47,    38,    48,    47,
+      50,   -40,   -40,   -40,   -40,    10,    39,    19,    -7,    12,
+      23,    40,    41,   -40,   -40,   -40,   -40,   -40,    19,   -40,
+     -40,   -40,    42,    44,   -40,    47,    47,   -40,   -40,    45,
+      50,    49,   -40,    19,    51,    52,    53,    57,   -40,   -40,
      -40,   -40,   -40,   -40,   -40,   -40
 };
 
@@ -647,8 +647,8 @@ static const yytype_int8 yydefact[] =
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -40,    63,   -40,   -40,   -40,   -40,    16,   -40,   -39,   -40,
-     -40,   -40,   -40,    -6,   -20,   -12
+     -40,    54,   -40,   -40,   -40,   -40,    20,   -40,   -39,   -40,
+     -40,   -40,   -40,     4,   -10,    -6
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
@@ -665,24 +665,24 @@ static const yytype_int8 yytable[] =
 {
       49,     1,     2,     3,     4,     5,     6,     7,     8,    24,
       64,    36,    37,    38,    39,     9,    53,    54,    55,    56,
-      57,    65,    25,    15,    16,    19,    75,    76,    17,    18,
-      20,    21,    60,    61,    67,    68,    22,    28,    29,    30,
-      31,    32,    33,    34,    24,    40,    35,    45,    41,    48,
-      50,    44,    72,    81,    42,    43,    47,    59,    79,     0,
-       0,     0,    77,    71,     0,    70,    74,    73,    80,    82,
-      83,    66,    84,    85,    23
+      57,    65,    60,    25,    61,    19,    75,    76,    15,    16,
+      17,    18,    20,    21,    67,    68,    22,    28,    29,    30,
+      66,    31,    32,    33,    34,    40,    41,    35,    42,    43,
+      24,    45,    48,    47,    50,    44,    59,    71,    77,    70,
+      74,    73,    72,    81,    79,    23,    80,     0,    82,    83,
+      84,    85
 };
 
 static const yytype_int8 yycheck[] =
 {
-      39,    20,    21,    22,    23,    24,    25,    26,    27,     5,
+      39,    20,    21,    22,    23,    24,    25,    26,    27,     4,
       17,    28,    29,    30,    31,    34,     6,     7,     8,     9,
-      10,    28,    18,    32,    33,     5,    65,    66,    32,    33,
-      35,    36,     3,     4,    11,    12,     0,     5,     5,     5,
-       5,    17,    17,    17,     5,    15,    19,     5,    17,     5,
-       5,    35,    58,    73,    17,    17,    15,    17,    70,    -1,
-      -1,    -1,    13,    16,    -1,    19,    16,    19,    17,    17,
-      17,    28,    17,    14,    11
+      10,    28,     3,    18,     5,     4,    65,    66,    32,    33,
+      32,    33,    35,    36,    11,    12,     0,     4,     4,     4,
+      28,     4,    17,    17,    17,    15,    17,    19,    17,    17,
+       4,     4,     4,    15,     4,    35,    17,    16,    13,    19,
+      16,    19,    58,    73,    70,    11,    17,    -1,    17,    17,
+      17,    14
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
@@ -690,12 +690,12 @@ static const yytype_int8 yycheck[] =
 static const yytype_int8 yystos[] =
 {
        0,    20,    21,    22,    23,    24,    25,    26,    27,    34,
-      38,    39,    40,    41,    42,    32,    33,    32,    33,     5,
-      35,    36,     0,    38,     5,    18,    43,    44,     5,     5,
-       5,     5,    17,    17,    17,    19,    28,    29,    30,    31,
-      15,    17,    17,    17,    43,     5,    45,    15,     5,    45,
-       5,    49,    52,     6,     7,     8,     9,    10,    46,    17,
-       3,     4,    50,    51,    17,    28,    28,    11,    12,    47,
+      38,    39,    40,    41,    42,    32,    33,    32,    33,     4,
+      35,    36,     0,    38,     4,    18,    43,    44,     4,     4,
+       4,     4,    17,    17,    17,    19,    28,    29,    30,    31,
+      15,    17,    17,    17,    43,     4,    45,    15,     4,    45,
+       4,    49,    52,     6,     7,     8,     9,    10,    46,    17,
+       3,     5,    50,    51,    17,    28,    28,    11,    12,    47,
       19,    16,    50,    19,    16,    45,    45,    13,    48,    52,
       17,    51,    17,    17,    17,    14
 };
@@ -1181,37 +1181,37 @@ yyreduce:
   switch (yyn)
     {
   case 3: /* FINAL: OPE FINAL  */
-#line 71 "syntax.y"
+#line 73 "syntax.y"
                {}
 #line 1187 "syntax.tab.c"
     break;
 
   case 4: /* OPE: DDL  */
-#line 73 "syntax.y"
+#line 75 "syntax.y"
         {}
 #line 1193 "syntax.tab.c"
     break;
 
   case 5: /* OPE: DML  */
-#line 74 "syntax.y"
+#line 76 "syntax.y"
         {}
 #line 1199 "syntax.tab.c"
     break;
 
   case 6: /* OPE: EXIT  */
-#line 75 "syntax.y"
+#line 77 "syntax.y"
          {exitDB();}
 #line 1205 "syntax.tab.c"
     break;
 
   case 7: /* DDL: OP_CREATE N_DATABASE ID Y_SEMICOLON  */
-#line 77 "syntax.y"
+#line 79 "syntax.y"
                                         {createDB((yyvsp[-1].str));}
 #line 1211 "syntax.tab.c"
     break;
 
   case 8: /* DDL: OP_CREATE N_TABLE ID Y_LPAR INLIST Y_RPAR Y_SEMICOLON  */
-#line 78 "syntax.y"
+#line 80 "syntax.y"
                                                           {
                                                         createTB((yyvsp[-4].str),(yyvsp[-2].init_list), typeSize);
                                                         for (int i = 0; i < typeSize; ++i) {
@@ -1226,25 +1226,25 @@ yyreduce:
     break;
 
   case 9: /* DDL: OP_DROP N_DATABASE ID Y_SEMICOLON  */
-#line 88 "syntax.y"
+#line 90 "syntax.y"
                                       {dropDB((yyvsp[-1].str));}
 #line 1232 "syntax.tab.c"
     break;
 
   case 10: /* DDL: OP_DROP N_TABLE ID Y_SEMICOLON  */
-#line 89 "syntax.y"
+#line 91 "syntax.y"
                                    {dropTB((yyvsp[-1].str));}
 #line 1238 "syntax.tab.c"
     break;
 
   case 11: /* DDL: OP_USE ID Y_SEMICOLON  */
-#line 90 "syntax.y"
+#line 92 "syntax.y"
                           {useDB((yyvsp[-1].str));}
 #line 1244 "syntax.tab.c"
     break;
 
   case 12: /* DML: DML_OP DML_OBJ S_FROM ID OP_S_WHERE CONDITION Y_SEMICOLON  */
-#line 92 "syntax.y"
+#line 94 "syntax.y"
                                                              {
                                                             selectFromTB((yyvsp[-5].column_list),(yyvsp[-3].str),&(yyvsp[-1].condition),size);
                                                             for (int i = 0; i < size; ++i) {
@@ -1258,7 +1258,7 @@ yyreduce:
     break;
 
   case 13: /* DML: DML_OP DML_OBJ S_FROM ID Y_SEMICOLON  */
-#line 101 "syntax.y"
+#line 103 "syntax.y"
                                         {
                             selectFromTB((yyvsp[-3].column_list),(yyvsp[-1].str),NULL,size);
                             for (int i = 0; i < size; ++i) {
@@ -1272,13 +1272,13 @@ yyreduce:
     break;
 
   case 14: /* DML: DML_OP DML_OBJ OP_S_WHERE CONDITION Y_SEMICOLON  */
-#line 110 "syntax.y"
+#line 112 "syntax.y"
                                                    {deleteFromTB((yyvsp[-3].column_list)[0],&(yyvsp[-1].condition));}
 #line 1278 "syntax.tab.c"
     break;
 
   case 15: /* DML: DML_OP DML_OBJ S_VALUES_ASSIS Y_LPAR DATALIST Y_RPAR Y_SEMICOLON  */
-#line 111 "syntax.y"
+#line 113 "syntax.y"
                                                                     {
                                                             insertIntoTB((yyvsp[-5].column_list)[0],(yyvsp[-2].data_list),dataSize);
                                                             for (int i = 0; i < dataSize; ++i) {
@@ -1292,25 +1292,25 @@ yyreduce:
     break;
 
   case 16: /* DML: DML_OP DML_OBJ S_SET CONDITION OP_S_WHERE CONDITION Y_SEMICOLON  */
-#line 120 "syntax.y"
+#line 122 "syntax.y"
                                                                    {updateTB((yyvsp[-5].column_list)[0],&(yyvsp[-3].condition),&(yyvsp[-1].condition));}
 #line 1298 "syntax.tab.c"
     break;
 
   case 17: /* DML: OP_SHOW N_DATABASES Y_SEMICOLON  */
-#line 121 "syntax.y"
+#line 123 "syntax.y"
                                     {showDB();}
 #line 1304 "syntax.tab.c"
     break;
 
   case 18: /* DML: OP_SHOW N_TABLES Y_SEMICOLON  */
-#line 122 "syntax.y"
+#line 124 "syntax.y"
                                  {showTB();}
 #line 1310 "syntax.tab.c"
     break;
 
   case 24: /* COLUMN_LIST: ID  */
-#line 130 "syntax.y"
+#line 132 "syntax.y"
                {
                 ColumnVector = (char**)realloc(ColumnVector, sizeof(char*) * (size + 1));
                 ColumnVector[size++] = strdup((yyvsp[0].str));
@@ -1320,7 +1320,7 @@ yyreduce:
     break;
 
   case 25: /* COLUMN_LIST: ID Y_COMMA COLUMN_LIST  */
-#line 135 "syntax.y"
+#line 137 "syntax.y"
                                    {
                 ColumnVector = (char**)realloc(ColumnVector, sizeof(char*) * (size + 1));
                 ColumnVector[size++] = strdup((yyvsp[-2].str));
@@ -1330,66 +1330,64 @@ yyreduce:
     break;
 
   case 26: /* DML_OBJ: COLUMN_LIST  */
-#line 142 "syntax.y"
+#line 144 "syntax.y"
                     {(yyval.column_list) = (yyvsp[0].column_list);}
 #line 1336 "syntax.tab.c"
     break;
 
   case 27: /* DML_OBJ: Y_ALL  */
-#line 143 "syntax.y"
-              {(yyval.column_list) = NULL;}
+#line 145 "syntax.y"
+              {size = 0;(yyval.column_list) = NULL;}
 #line 1342 "syntax.tab.c"
     break;
 
   case 28: /* CONDITION: ID RELATION_OP DATA  */
-#line 146 "syntax.y"
+#line 148 "syntax.y"
                               {condition.name = (char*)malloc(strlen((yyvsp[-2].str)) + 1);strcpy(condition.name, (yyvsp[-2].str));condition.relation_op = (yyvsp[-1].relation_op);condition.data = (yyvsp[0].data);(yyval.condition) = condition;
-                                // printf("condition.name:%s\n",condition.name);
-                                //printf("$1:%s\n",$1);
                                 }
-#line 1351 "syntax.tab.c"
+#line 1349 "syntax.tab.c"
     break;
 
   case 29: /* RELATION_OP: Y_EQ  */
 #line 151 "syntax.y"
                  {(yyval.relation_op) = EQ;}
-#line 1357 "syntax.tab.c"
+#line 1355 "syntax.tab.c"
     break;
 
   case 30: /* RELATION_OP: Y_GREAT  */
 #line 152 "syntax.y"
                     {(yyval.relation_op) = GREAT;}
-#line 1363 "syntax.tab.c"
+#line 1361 "syntax.tab.c"
     break;
 
   case 31: /* RELATION_OP: Y_GREATEQ  */
 #line 153 "syntax.y"
                       {(yyval.relation_op) = GREATEQ;}
-#line 1369 "syntax.tab.c"
+#line 1367 "syntax.tab.c"
     break;
 
   case 32: /* RELATION_OP: Y_LESS  */
 #line 154 "syntax.y"
                    {(yyval.relation_op) = LESS;}
-#line 1375 "syntax.tab.c"
+#line 1373 "syntax.tab.c"
     break;
 
   case 33: /* RELATION_OP: Y_LESSEQ  */
 #line 155 "syntax.y"
                      {(yyval.relation_op) = LESSEQ;}
-#line 1381 "syntax.tab.c"
+#line 1379 "syntax.tab.c"
     break;
 
   case 34: /* TYPE: Y_INT  */
 #line 157 "syntax.y"
            {(yyval.ivalue) = 0;}
-#line 1387 "syntax.tab.c"
+#line 1385 "syntax.tab.c"
     break;
 
   case 35: /* TYPE: Y_STRING  */
 #line 158 "syntax.y"
               {(yyval.ivalue) = 1;}
-#line 1393 "syntax.tab.c"
+#line 1391 "syntax.tab.c"
     break;
 
   case 37: /* INITSET: ID TYPE  */
@@ -1400,7 +1398,7 @@ yyreduce:
         init.flag=0;init.type=(yyvsp[0].ivalue);
         (yyval.init) = init;
     }
-#line 1404 "syntax.tab.c"
+#line 1402 "syntax.tab.c"
     break;
 
   case 38: /* INITSET: ID TYPE KEY  */
@@ -1411,19 +1409,19 @@ yyreduce:
         init.flag=1;init.type=(yyvsp[-1].ivalue);
         (yyval.init) = init;
     }
-#line 1415 "syntax.tab.c"
+#line 1413 "syntax.tab.c"
     break;
 
   case 39: /* DATA: num_INT  */
 #line 175 "syntax.y"
              {data.data.num_int = (yyvsp[0].ivalue);data.flag = 0;(yyval.data) = data;}
-#line 1421 "syntax.tab.c"
+#line 1419 "syntax.tab.c"
     break;
 
   case 40: /* DATA: data_STRING  */
 #line 176 "syntax.y"
-                 {strcpy(data.data.str_data,(yyvsp[0].str));data.flag = 1;(yyval.data) = data;}
-#line 1427 "syntax.tab.c"
+                 {strcpy(data.data.str_data,(yyvsp[0].string_value));data.flag = 1;(yyval.data) = data;}
+#line 1425 "syntax.tab.c"
     break;
 
   case 41: /* DATALIST: DATA  */
@@ -1441,7 +1439,7 @@ yyreduce:
             (yyval.data_list) = DataVector;
             // printf("2%s\n",DataVector[dataSize-1]->name);
         }
-#line 1445 "syntax.tab.c"
+#line 1443 "syntax.tab.c"
     break;
 
   case 42: /* DATALIST: DATA Y_COMMA DATALIST  */
@@ -1459,7 +1457,7 @@ yyreduce:
             (yyval.data_list) = DataVector;
             // printf("2%s\n",DataVector[dataSize-1]->name);
         }
-#line 1463 "syntax.tab.c"
+#line 1461 "syntax.tab.c"
     break;
 
   case 43: /* INLIST: INITSET Y_COMMA INLIST  */
@@ -1474,7 +1472,7 @@ yyreduce:
             typeSize++;
             (yyval.init_list) = TypeVector;
         }
-#line 1478 "syntax.tab.c"
+#line 1476 "syntax.tab.c"
     break;
 
   case 44: /* INLIST: INITSET  */
@@ -1489,11 +1487,11 @@ yyreduce:
             typeSize++;
             (yyval.init_list) = TypeVector;
         }
-#line 1493 "syntax.tab.c"
+#line 1491 "syntax.tab.c"
     break;
 
 
-#line 1497 "syntax.tab.c"
+#line 1495 "syntax.tab.c"
 
       default: break;
     }

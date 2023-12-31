@@ -3,11 +3,12 @@
     #include "stdlib.h"
     #include "string.h"
     #include "syntax.tab.h"
-    #include "DATA.h"
+    #include "data.h"
 
     //[Ee][Xx][Ii][Tt] { return OP_EXIT; }
     //[Ss][Hh][Oo][Ww] { return OP_SHOW;}
     int yyparse();
+    void yyerror(const char *str);
 %}
 
 newline \n
@@ -18,7 +19,7 @@ INT [\+-]?[1-9][0-9]*
 
 
 %%
-{newline} {printf("yoursql> ");}
+{newline} {printf("\nyoursql> ");}
 {white} {}
 {INT} {yylval.ivalue = atoi(yytext);return num_INT;}
 [\+-]?0 {yylval.ivalue = 0;return num_INT;}
@@ -48,13 +49,23 @@ INT [\+-]?[1-9][0-9]*
 [Vv][Aa][Rr][Cc][Hh][Aa][Rr] { return Y_STRING; }
 "string" { return Y_STRING; }
 {ID} {
-    yylval.str = strdup(yytext); 
+    //yylval.str = strdup(yytext);
+    if (strlen(yytext) > 254){
+        yyerror("ID too long");
+    }
+    strcpy(yylval.str,yytext);
     return ID; 
     }
 
 
 
-"\""+.+"\"" {return data_STRING;}
+"\""+.+"\"" {
+    //yylval.str = strdup(yytext);
+    if (strlen(yytext) > 254){
+        yyerror("string too long");
+    }
+    strcpy(yylval.string_value,yytext);
+    return data_STRING;}
 "(" {return Y_LPAR;}
 ")" {return Y_RPAR;}
 ";" {return Y_SEMICOLON;}
@@ -70,7 +81,7 @@ INT [\+-]?[1-9][0-9]*
 
 %%
 
-void yyerror(char *str){
+void yyerror(const char *str){
     fprintf(stderr,"error:%s\n",str);
     yyparse();
 }

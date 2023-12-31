@@ -16,12 +16,12 @@
 #include"page.h"
 #include <cstring>
 
-#define PATH_PREFIX "../data/"
+#define PATH_PREFIX "./data/"
 
 class DiskManager {
 public:
     DiskManager(const std::string& table_name, int cache_size, const std::string& database_name) 
-    : filename(PATH_PREFIX+database_name+table_name + ".dat"), bufferManager(cache_size, file) {
+    : filename(PATH_PREFIX+database_name+"/"+table_name + ".db"), bufferManager(cache_size, file) {
         openFile(file, filename);
     }
     ~DiskManager()

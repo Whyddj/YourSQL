@@ -51,7 +51,7 @@ extern int yydebug;
     // #include <string>
     // #include <vector>
     // #include <map>
-    #include "DATA.h"
+    #include "data.h"
     #include "parse_operations.h"
 
 #line 58 "syntax.tab.h"
@@ -66,8 +66,8 @@ extern int yydebug;
     YYerror = 256,                 /* error  */
     YYUNDEF = 257,                 /* "invalid token"  */
     num_INT = 258,                 /* num_INT  */
-    data_STRING = 259,             /* data_STRING  */
-    ID = 260,                      /* ID  */
+    ID = 259,                      /* ID  */
+    data_STRING = 260,             /* data_STRING  */
     Y_EQ = 261,                    /* Y_EQ  */
     Y_GREAT = 262,                 /* Y_GREAT  */
     Y_GREATEQ = 263,               /* Y_GREATEQ  */
@@ -117,9 +117,10 @@ union YYSTYPE
     struct Condition condition;
     enum Relation relation_op;
     int ivalue;
-    char *str;
+    char str[255];
+    char string_value[255];
 
-#line 123 "syntax.tab.h"
+#line 124 "syntax.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

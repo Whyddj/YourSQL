@@ -54,6 +54,7 @@ typedef struct meta_page{
     col_info colInfo[MAX_COL_NUM];
     std::queue<int> freePages;
     char primaryKey[MAX_NAME_LEN];
+    std::map<std::array<char,MAX_NAME_LEN>,int,ArrayEqual> colInfoMap;
 }meta_page ;
 
 inline std::string serializeMetaPage(meta_page& data) {
@@ -78,6 +79,13 @@ inline std::string serializeMetaPage(meta_page& data) {
         data.freePages.pop();
     }
     oss.write(data.primaryKey, sizeof(data.primaryKey));
+
+   size_t Size = data.colInfoMap.size();
+    oss.write(reinterpret_cast<const char*>(&Size), sizeof(size_t));
+    for (const auto& entry : data.colInfoMap) {
+        oss.write(reinterpret_cast<const char*>(&entry.first), sizeof(std::array<char, MAX_NAME_LEN>));
+        oss.write(reinterpret_cast<const char*>(&entry.second), sizeof(int));
+    }
     
     const size_t remainingBytes = 4096 - oss.str().size();
     for (size_t i = 0; i < remainingBytes; ++i) {
@@ -108,6 +116,16 @@ inline void deserializeMetaPage(meta_page& data, const std::string& serializedDa
         data.freePages.push(element);
     }
     iss.read(data.primaryKey, sizeof(data.primaryKey));
+
+    size_t Size;
+    iss.read(reinterpret_cast<char*>(&Size), sizeof(size_t));
+    for (size_t i = 0; i < Size; ++i) {
+        std::array<char, MAX_NAME_LEN> key;
+        int value;
+        iss.read(reinterpret_cast<char*>(&key), sizeof(std::array<char, MAX_NAME_LEN>));
+        iss.read(reinterpret_cast<char*>(&value), sizeof(int));
+        data.colInfoMap[key] = value;
+    }
 }
 
 inline std::string serializeDataPage(const data_page& data) {

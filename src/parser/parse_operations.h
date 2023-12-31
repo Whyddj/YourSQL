@@ -1,7 +1,8 @@
 #ifndef __PARSE_OPERATIONS_H
 #define __PARSE_OPERATIONS_H
 
-#include "DATA.h"
+#include "data.h"
+
 
 void createDB(char* DBname);
 void useDB(char* DBname);

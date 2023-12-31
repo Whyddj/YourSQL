@@ -1,12 +1,9 @@
-#ifndef __DATA_h
-#define __DATA_h
+#ifndef __DATA_H
+#define __DATA_H
 
 #include "stdio.h"
 #include "stdlib.h"
-#include <iostream>
-#include <string>
-#include <map>
-#include <vector>
+
 
 union Data{
     int num_int;
@@ -35,4 +32,4 @@ typedef struct Condition{
     Data_Type data;
 } Condition;
 
-#endif
+#endif // __DATA_H

@@ -6,7 +6,7 @@
     // #include <string>
     // #include <vector>
     // #include <map>
-    #include "DATA.h"
+    #include "data.h"
     #include "parse_operations.h"
 
     // std::vector<std::string> ColumnVector;
@@ -23,7 +23,7 @@
     struct Init_List init;
     struct Condition condition;
     int yylex();
-    void yyerror(char* str);
+    void yyerror(const char* str);
 %}
 
 %code requires {
@@ -31,7 +31,7 @@
     // #include <string>
     // #include <vector>
     // #include <map>
-    #include "DATA.h"
+    #include "data.h"
     #include "parse_operations.h"
 }
 
@@ -44,11 +44,13 @@
     struct Condition condition;
     enum Relation relation_op;
     int ivalue;
-    char *str;
+    char str[255];
+    char string_value[255];
 }
 
 %token <ivalue> num_INT 
-%token <str> data_STRING ID
+%token <str> ID
+%token <string_value> data_STRING
 %token Y_EQ Y_GREAT Y_GREATEQ Y_LESS Y_LESSEQ
 %token Y_STRING Y_INT KEY_type KEY_symbol
 %token Y_LPAR Y_RPAR Y_SEMICOLON Y_ALL Y_COMMA
@@ -140,12 +142,10 @@ COLUMN_LIST:ID {
 
 
 DML_OBJ:COLUMN_LIST {$$ = $1;}
-       |Y_ALL {$$ = NULL;}
+       |Y_ALL {size = 0;$$ = NULL;}
 
 
 CONDITION:ID RELATION_OP DATA {condition.name = (char*)malloc(strlen($1) + 1);strcpy(condition.name, $1);condition.relation_op = $2;condition.data = $3;$$ = condition;
-                                // printf("condition.name:%s\n",condition.name);
-                                //printf("$1:%s\n",$1);
                                 }
 
 RELATION_OP:Y_EQ {$$ = EQ;}

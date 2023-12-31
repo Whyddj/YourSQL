@@ -1,4 +1,6 @@
-// util.h
+/**
+ * 工具函数,开发时使用
+*/
 #ifndef UTIL_H
 #define UTIL_H
 
