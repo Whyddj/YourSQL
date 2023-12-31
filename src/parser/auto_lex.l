@@ -10,6 +10,7 @@
     int yyparse();
 %}
 
+newline \n
 white [\n\t ]
 ID [a-zA-Z]+
 /* DATA_STR [a-zA-Z_0-9\,\.\+-=; ]+ */
@@ -17,6 +18,7 @@ INT [\+-]?[1-9][0-9]*
 
 
 %%
+{newline} {printf("yoursql> ");}
 {white} {}
 {INT} {yylval.ivalue = atoi(yytext);return num_INT;}
 [\+-]?0 {yylval.ivalue = 0;return num_INT;}
@@ -33,6 +35,12 @@ INT [\+-]?[1-9][0-9]*
 [Ss][Ee][Tt] { return S_SET; }
 [Tt][Aa][Bb][Ll][Ee] { return N_TABLE; }
 [Dd][Aa][Tt][Aa][Bb][Aa][Ss][Ee] { return N_DATABASE; }
+
+[Ee][Xx][Ii][Tt] { return EXIT; }
+[Ss][Hh][Oo][Ww] { return OP_SHOW;}
+[Tt][Aa][Bb][Ll][Ee][Ss] { return N_TABLES; }
+[Dd][Aa][Tt][Aa][Bb][Aa][Ss][Ee][Ss] { return N_DATABASES; }
+
 
 [Pp][Rr][Ii][Mm][Aa][Rr][Yy] { return KEY_type; }
 [Kk][Ee][Yy] { return KEY_symbol; }

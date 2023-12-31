@@ -52,7 +52,7 @@
 %token Y_EQ Y_GREAT Y_GREATEQ Y_LESS Y_LESSEQ
 %token Y_STRING Y_INT KEY_type KEY_symbol
 %token Y_LPAR Y_RPAR Y_SEMICOLON Y_ALL Y_COMMA
-%token OP_CREATE OP_DROP OP_USE OP_SELECT OP_DELETE OP_INSERT OP_UPDATE OP_S_WHERE S_VALUES_ASSIS S_FROM S_SET N_TABLE N_DATABASE
+%token OP_CREATE OP_DROP OP_USE OP_SELECT OP_DELETE OP_INSERT OP_UPDATE OP_SHOW OP_S_WHERE S_VALUES_ASSIS S_FROM S_SET N_TABLE N_DATABASE EXIT N_TABLES N_DATABASES
 
 %type DDL DML DML_OP
 %type <condition> CONDITION 
@@ -68,10 +68,11 @@
 
 %%
 FINAL:OPE
-    |OPE FINAL
+    |OPE FINAL {}
 
-OPE:DDL {printf("DDL\n");}
-   |DML {printf("DML\n");}
+OPE:DDL {}
+   |DML {}
+   |EXIT {exitDB();}
 
 DDL:OP_CREATE N_DATABASE ID Y_SEMICOLON {createDB($3);}//创建数据库
    |OP_CREATE N_TABLE ID Y_LPAR INLIST Y_RPAR Y_SEMICOLON {
@@ -97,6 +98,15 @@ DML:DML_OP DML_OBJ S_FROM ID OP_S_WHERE CONDITION Y_SEMICOLON{
                                                             ColumnVector = NULL; // 避免悬挂指针
                                                             size = 0;
                                                             }//从表中选择数据
+   |DML_OP DML_OBJ S_FROM ID Y_SEMICOLON{
+                            selectFromTB($2,$4,NULL,size);
+                            for (int i = 0; i < size; ++i) {
+                                free(ColumnVector[i]); // 释放每个元素指向的内存
+                            }
+                            free(ColumnVector); // 释放数组本身
+                            ColumnVector = NULL; // 避免悬挂指针
+                            size = 0;
+                            } // 从表中选择所有数据
    |DML_OP DML_OBJ OP_S_WHERE CONDITION Y_SEMICOLON{deleteFromTB($2[0],&$4);} //从表中删除数据
    |DML_OP DML_OBJ S_VALUES_ASSIS Y_LPAR DATALIST Y_RPAR Y_SEMICOLON{
                                                             insertIntoTB($2[0],$5,dataSize);
@@ -108,11 +118,14 @@ DML:DML_OP DML_OBJ S_FROM ID OP_S_WHERE CONDITION Y_SEMICOLON{
                                                             dataSize = 0;
                                                             }//向表中插入数据
    |DML_OP DML_OBJ S_SET CONDITION OP_S_WHERE CONDITION Y_SEMICOLON{updateTB($2[0],&$4,&$6);}//更新表中数据
+    |OP_SHOW N_DATABASES Y_SEMICOLON{showDB();}//显示数据库
+    |OP_SHOW N_TABLES Y_SEMICOLON{showTB();}//显示表
 
 DML_OP:OP_INSERT 
       |OP_UPDATE 
       |OP_DELETE 
       |OP_SELECT 
+      |OP_SHOW
 
 COLUMN_LIST:ID {
                 ColumnVector = (char**)realloc(ColumnVector, sizeof(char*) * (size + 1));

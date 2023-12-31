@@ -7,14 +7,20 @@ void createDB(char* DBname) {
     std::cout << "createDB" << std::endl;
     //char*转为string
     std::string _DBname(DBname);
+
+    // TODO: 调用API
 }
 void useDB(char* DBname) {
     std::cout << "useDB" << std::endl;
     std::string _DBname(DBname);
+
+    // TODO: 调用API
 }
 void dropDB(char* DBname) {
     std::cout << "dropDB" << std::endl;
     std::string _DBname(DBname);
+
+    // TODO: 调用API
 }
 void createTB(char* DBname,Init_List** TypeVector, int length) {
     // std::cout << "createTB" << std::endl;
@@ -42,10 +48,14 @@ void createTB(char* DBname,Init_List** TypeVector, int length) {
         free(TypeVector[i]);
     }
     free(TypeVector);
+
+    // TODO: 调用API
 }
 void dropTB(char* TBname) {
     std::cout << "dropTB" << std::endl;
     std::string _TBname(TBname);
+
+    // TODO: 调用API
 }
 void selectFromTB(char** ColumnVector,char* TBname,Condition* condition, int length) {
     std::cout << "selectFromTB" << std::endl;
@@ -53,6 +63,13 @@ void selectFromTB(char** ColumnVector,char* TBname,Condition* condition, int len
         // std::cout << "ColumnVector[" << i << "] :" << ColumnVector[i] << std::endl;
         printf("ColumnVector[%d] :%s\n", i, ColumnVector[i]);
     }
+    if (ColumnVector == NULL)
+        std::cout << "ColumnVector is NULL" << std::endl;
+
+    if (condition == NULL)
+        std::cout << "Condition is NULL" << std::endl;
+
+    // TODO: 调用API
 }
 void insertIntoTB(char* TBname,Data_Type** DataVector, int length) {
     std::cout << "insertIntoTB" << std::endl;
@@ -66,6 +83,8 @@ void insertIntoTB(char* TBname,Data_Type** DataVector, int length) {
             std::cout << "DataVector[" << i << "]->data :" << DataVector[i]->data.str_data << std::endl;
         // std::cout << "DataVector[" << i << "]->type :" << DataVector[i]->data << std::endl;
     }
+
+    // TODO: 调用API
 }
 void deleteFromTB(char* TBname,Condition* condition) {
     std::cout << "deleteFromTB" << std::endl;
@@ -73,6 +92,9 @@ void deleteFromTB(char* TBname,Condition* condition) {
     printf("condition->name :%s\n", condition->name);
     std::cout << "condition->relation_op :" << condition->relation_op << std::endl;
     std::cout << "condition->data.flag :" << condition->data.flag << std::endl;
+
+
+    // TODO: 调用API
 }
 void updateTB(char* TBname,Condition* update,Condition* condition) {
     std::cout << "updateTB" << std::endl;

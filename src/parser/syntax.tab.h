@@ -89,12 +89,16 @@ extern int yydebug;
     OP_DELETE = 279,               /* OP_DELETE  */
     OP_INSERT = 280,               /* OP_INSERT  */
     OP_UPDATE = 281,               /* OP_UPDATE  */
-    OP_S_WHERE = 282,              /* OP_S_WHERE  */
-    S_VALUES_ASSIS = 283,          /* S_VALUES_ASSIS  */
-    S_FROM = 284,                  /* S_FROM  */
-    S_SET = 285,                   /* S_SET  */
-    N_TABLE = 286,                 /* N_TABLE  */
-    N_DATABASE = 287               /* N_DATABASE  */
+    OP_SHOW = 282,                 /* OP_SHOW  */
+    OP_S_WHERE = 283,              /* OP_S_WHERE  */
+    S_VALUES_ASSIS = 284,          /* S_VALUES_ASSIS  */
+    S_FROM = 285,                  /* S_FROM  */
+    S_SET = 286,                   /* S_SET  */
+    N_TABLE = 287,                 /* N_TABLE  */
+    N_DATABASE = 288,              /* N_DATABASE  */
+    EXIT = 289,                    /* EXIT  */
+    N_TABLES = 290,                /* N_TABLES  */
+    N_DATABASES = 291              /* N_DATABASES  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -115,7 +119,7 @@ union YYSTYPE
     int ivalue;
     char *str;
 
-#line 119 "syntax.tab.h"
+#line 123 "syntax.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
