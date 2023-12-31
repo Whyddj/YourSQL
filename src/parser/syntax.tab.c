@@ -71,11 +71,31 @@
 
     #include "stdio.h"
     #include "stdlib.h"
-    #include "string.h"    
+    #include "string.h"
+    // #include <iostream>
+    // #include <string>
+    // #include <vector>
+    // #include <map>
+    #include "DATA.h"
+    #include "parse_operations.h"
+
+    // std::vector<std::string> ColumnVector;
+    // std::vector<struct Data_type> DataVector;
+    // std::vector<struct Init_List> TypeVector;
+    char** ColumnVector;
+    int size;
+    struct Data_Type** DataVector;
+    int dataSize;
+    struct Init_List** TypeVector;
+    int typeSize;
+
+    struct Data_Type data;
+    struct Init_List init;
+    struct Condition condition;
     int yylex();
     void yyerror(char* str);
 
-#line 79 "syntax.tab.c"
+#line 99 "syntax.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -109,46 +129,53 @@ enum yysymbol_kind_t
   YYSYMBOL_num_INT = 3,                    /* num_INT  */
   YYSYMBOL_data_STRING = 4,                /* data_STRING  */
   YYSYMBOL_ID = 5,                         /* ID  */
-  YYSYMBOL_KEY_type = 6,                   /* KEY_type  */
-  YYSYMBOL_KEY_symbol = 7,                 /* KEY_symbol  */
-  YYSYMBOL_Y_STRING = 8,                   /* Y_STRING  */
-  YYSYMBOL_Y_INT = 9,                      /* Y_INT  */
-  YYSYMBOL_Y_LPAR = 10,                    /* Y_LPAR  */
-  YYSYMBOL_Y_RPAR = 11,                    /* Y_RPAR  */
-  YYSYMBOL_Y_EQ = 12,                      /* Y_EQ  */
-  YYSYMBOL_Y_SEMICOLON = 13,               /* Y_SEMICOLON  */
-  YYSYMBOL_Y_ALL = 14,                     /* Y_ALL  */
-  YYSYMBOL_Y_COMMA = 15,                   /* Y_COMMA  */
-  YYSYMBOL_OP_CREATE = 16,                 /* OP_CREATE  */
-  YYSYMBOL_OP_DROP = 17,                   /* OP_DROP  */
-  YYSYMBOL_OP_USE = 18,                    /* OP_USE  */
-  YYSYMBOL_OP_SELECT = 19,                 /* OP_SELECT  */
-  YYSYMBOL_OP_DELETE = 20,                 /* OP_DELETE  */
-  YYSYMBOL_OP_INSERT = 21,                 /* OP_INSERT  */
-  YYSYMBOL_OP_UPDATE = 22,                 /* OP_UPDATE  */
-  YYSYMBOL_OP_S_WHERE = 23,                /* OP_S_WHERE  */
-  YYSYMBOL_S_VALUES_ASSIS = 24,            /* S_VALUES_ASSIS  */
-  YYSYMBOL_S_FROM = 25,                    /* S_FROM  */
-  YYSYMBOL_S_SET = 26,                     /* S_SET  */
-  YYSYMBOL_N_TABLE = 27,                   /* N_TABLE  */
-  YYSYMBOL_N_DATABASE = 28,                /* N_DATABASE  */
-  YYSYMBOL_YYACCEPT = 29,                  /* $accept  */
-  YYSYMBOL_FINAL = 30,                     /* FINAL  */
-  YYSYMBOL_OPE = 31,                       /* OPE  */
-  YYSYMBOL_SPE_STRU = 32,                  /* SPE_STRU  */
-  YYSYMBOL_DDL = 33,                       /* DDL  */
-  YYSYMBOL_DDL_OP = 34,                    /* DDL_OP  */
-  YYSYMBOL_DML = 35,                       /* DML  */
-  YYSYMBOL_DML_OP = 36,                    /* DML_OP  */
-  YYSYMBOL_DML_OBJ = 37,                   /* DML_OBJ  */
-  YYSYMBOL_DATA = 38,                      /* DATA  */
-  YYSYMBOL_CONDITIONS = 39,                /* CONDITIONS  */
-  YYSYMBOL_CONDITION = 40,                 /* CONDITION  */
-  YYSYMBOL_TYPE = 41,                      /* TYPE  */
-  YYSYMBOL_KEY = 42,                       /* KEY  */
-  YYSYMBOL_DATASET = 43,                   /* DATASET  */
-  YYSYMBOL_DATALIST = 44,                  /* DATALIST  */
-  YYSYMBOL_INLIST = 45                     /* INLIST  */
+  YYSYMBOL_Y_EQ = 6,                       /* Y_EQ  */
+  YYSYMBOL_Y_GREAT = 7,                    /* Y_GREAT  */
+  YYSYMBOL_Y_GREATEQ = 8,                  /* Y_GREATEQ  */
+  YYSYMBOL_Y_LESS = 9,                     /* Y_LESS  */
+  YYSYMBOL_Y_LESSEQ = 10,                  /* Y_LESSEQ  */
+  YYSYMBOL_Y_STRING = 11,                  /* Y_STRING  */
+  YYSYMBOL_Y_INT = 12,                     /* Y_INT  */
+  YYSYMBOL_KEY_type = 13,                  /* KEY_type  */
+  YYSYMBOL_KEY_symbol = 14,                /* KEY_symbol  */
+  YYSYMBOL_Y_LPAR = 15,                    /* Y_LPAR  */
+  YYSYMBOL_Y_RPAR = 16,                    /* Y_RPAR  */
+  YYSYMBOL_Y_SEMICOLON = 17,               /* Y_SEMICOLON  */
+  YYSYMBOL_Y_ALL = 18,                     /* Y_ALL  */
+  YYSYMBOL_Y_COMMA = 19,                   /* Y_COMMA  */
+  YYSYMBOL_OP_CREATE = 20,                 /* OP_CREATE  */
+  YYSYMBOL_OP_DROP = 21,                   /* OP_DROP  */
+  YYSYMBOL_OP_USE = 22,                    /* OP_USE  */
+  YYSYMBOL_OP_SELECT = 23,                 /* OP_SELECT  */
+  YYSYMBOL_OP_DELETE = 24,                 /* OP_DELETE  */
+  YYSYMBOL_OP_INSERT = 25,                 /* OP_INSERT  */
+  YYSYMBOL_OP_UPDATE = 26,                 /* OP_UPDATE  */
+  YYSYMBOL_OP_SHOW = 27,                   /* OP_SHOW  */
+  YYSYMBOL_OP_S_WHERE = 28,                /* OP_S_WHERE  */
+  YYSYMBOL_S_VALUES_ASSIS = 29,            /* S_VALUES_ASSIS  */
+  YYSYMBOL_S_FROM = 30,                    /* S_FROM  */
+  YYSYMBOL_S_SET = 31,                     /* S_SET  */
+  YYSYMBOL_N_TABLE = 32,                   /* N_TABLE  */
+  YYSYMBOL_N_DATABASE = 33,                /* N_DATABASE  */
+  YYSYMBOL_EXIT = 34,                      /* EXIT  */
+  YYSYMBOL_N_TABLES = 35,                  /* N_TABLES  */
+  YYSYMBOL_N_DATABASES = 36,               /* N_DATABASES  */
+  YYSYMBOL_YYACCEPT = 37,                  /* $accept  */
+  YYSYMBOL_FINAL = 38,                     /* FINAL  */
+  YYSYMBOL_OPE = 39,                       /* OPE  */
+  YYSYMBOL_DDL = 40,                       /* DDL  */
+  YYSYMBOL_DML = 41,                       /* DML  */
+  YYSYMBOL_DML_OP = 42,                    /* DML_OP  */
+  YYSYMBOL_COLUMN_LIST = 43,               /* COLUMN_LIST  */
+  YYSYMBOL_DML_OBJ = 44,                   /* DML_OBJ  */
+  YYSYMBOL_CONDITION = 45,                 /* CONDITION  */
+  YYSYMBOL_RELATION_OP = 46,               /* RELATION_OP  */
+  YYSYMBOL_TYPE = 47,                      /* TYPE  */
+  YYSYMBOL_KEY = 48,                       /* KEY  */
+  YYSYMBOL_INITSET = 49,                   /* INITSET  */
+  YYSYMBOL_DATA = 50,                      /* DATA  */
+  YYSYMBOL_DATALIST = 51,                  /* DATALIST  */
+  YYSYMBOL_INLIST = 52                     /* INLIST  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -474,21 +501,21 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  14
+#define YYFINAL  22
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   64
+#define YYLAST   74
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  29
+#define YYNTOKENS  37
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  17
+#define YYNNTS  16
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  37
+#define YYNRULES  44
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  69
+#define YYNSTATES  86
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   283
+#define YYMAXUTOK   291
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -530,17 +557,19 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
       15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
-      25,    26,    27,    28
+      25,    26,    27,    28,    29,    30,    31,    32,    33,    34,
+      35,    36
 };
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_int8 yyrline[] =
+static const yytype_uint8 yyrline[] =
 {
-       0,    25,    25,    26,    28,    29,    31,    32,    34,    35,
-      36,    38,    39,    40,    42,    43,    44,    45,    47,    48,
-      49,    50,    52,    53,    55,    56,    58,    59,    61,    63,
-      64,    66,    68,    69,    71,    72,    74,    75
+       0,    70,    70,    71,    73,    74,    75,    77,    78,    88,
+      89,    90,    92,   101,   110,   111,   120,   121,   122,   124,
+     125,   126,   127,   128,   130,   135,   142,   143,   146,   151,
+     152,   153,   154,   155,   157,   158,   160,   162,   168,   175,
+     176,   178,   191,   205,   215
 };
 #endif
 
@@ -557,13 +586,14 @@ static const char *yysymbol_name (yysymbol_kind_t yysymbol) YY_ATTRIBUTE_UNUSED;
 static const char *const yytname[] =
 {
   "\"end of file\"", "error", "\"invalid token\"", "num_INT",
-  "data_STRING", "ID", "KEY_type", "KEY_symbol", "Y_STRING", "Y_INT",
-  "Y_LPAR", "Y_RPAR", "Y_EQ", "Y_SEMICOLON", "Y_ALL", "Y_COMMA",
-  "OP_CREATE", "OP_DROP", "OP_USE", "OP_SELECT", "OP_DELETE", "OP_INSERT",
-  "OP_UPDATE", "OP_S_WHERE", "S_VALUES_ASSIS", "S_FROM", "S_SET",
-  "N_TABLE", "N_DATABASE", "$accept", "FINAL", "OPE", "SPE_STRU", "DDL",
-  "DDL_OP", "DML", "DML_OP", "DML_OBJ", "DATA", "CONDITIONS", "CONDITION",
-  "TYPE", "KEY", "DATASET", "DATALIST", "INLIST", YY_NULLPTR
+  "data_STRING", "ID", "Y_EQ", "Y_GREAT", "Y_GREATEQ", "Y_LESS",
+  "Y_LESSEQ", "Y_STRING", "Y_INT", "KEY_type", "KEY_symbol", "Y_LPAR",
+  "Y_RPAR", "Y_SEMICOLON", "Y_ALL", "Y_COMMA", "OP_CREATE", "OP_DROP",
+  "OP_USE", "OP_SELECT", "OP_DELETE", "OP_INSERT", "OP_UPDATE", "OP_SHOW",
+  "OP_S_WHERE", "S_VALUES_ASSIS", "S_FROM", "S_SET", "N_TABLE",
+  "N_DATABASE", "EXIT", "N_TABLES", "N_DATABASES", "$accept", "FINAL",
+  "OPE", "DDL", "DML", "DML_OP", "COLUMN_LIST", "DML_OBJ", "CONDITION",
+  "RELATION_OP", "TYPE", "KEY", "INITSET", "DATA", "DATALIST", "INLIST", YY_NULLPTR
 };
 
 static const char *
@@ -573,7 +603,7 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-34)
+#define YYPACT_NINF (-40)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -587,13 +617,15 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-     -14,   -34,   -34,   -34,   -34,   -34,   -34,   -34,    13,   -14,
-     -34,    -5,   -34,    -4,   -34,   -34,     7,   -34,   -34,    22,
-     -34,   -34,    -7,   -34,    11,    23,    19,    25,    23,    26,
-     -34,    20,    21,    18,     8,    12,    14,    17,    24,    27,
-       8,   -34,    23,   -34,   -34,    28,    29,    23,    23,   -34,
-     -34,    30,    26,    31,   -34,   -34,     8,    32,    33,    34,
-      35,   -34,   -34,   -34,   -34,   -34,   -34,   -34,   -34
+     -19,    -9,    -4,    20,   -40,   -40,   -40,   -40,    -5,   -40,
+      36,   -19,   -40,   -40,     4,    32,    33,    34,    35,    24,
+      25,    26,   -40,   -40,    27,   -40,   -40,   -17,    30,    31,
+      37,    38,   -40,   -40,   -40,    39,    42,    41,    44,    42,
+      45,   -40,   -40,   -40,   -40,    10,    40,    29,    -7,    43,
+      23,    46,    47,   -40,   -40,   -40,   -40,   -40,    29,   -40,
+     -40,   -40,    48,    50,   -40,    42,    42,   -40,   -40,    49,
+      45,    51,   -40,    29,    52,    53,    55,    59,   -40,   -40,
+     -40,   -40,   -40,   -40,   -40,   -40
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -601,27 +633,29 @@ static const yytype_int8 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,    11,    13,    12,    21,    20,    18,    19,     0,     2,
-       4,     0,     5,     0,     1,     3,     0,     6,     7,     0,
-      22,    23,     0,    10,     0,     0,     0,     0,     0,     0,
-       8,     0,     0,    26,     0,     0,     0,     0,    37,     0,
-       0,    15,     0,    24,    25,    34,     0,     0,     0,    30,
-      29,    32,     0,     0,    28,    27,     0,     0,     0,     0,
-       0,    33,    36,     9,    35,    16,    14,    17,    31
+       0,     0,     0,     0,    22,    21,    19,    20,    23,     6,
+       0,     2,     4,     5,     0,     0,     0,     0,     0,     0,
+       0,     0,     1,     3,    24,    27,    26,     0,     0,     0,
+       0,     0,    11,    18,    17,     0,     0,     0,     0,     0,
+       0,     7,    10,     9,    25,     0,     0,     0,     0,     0,
+       0,    44,     0,    29,    30,    31,    32,    33,     0,    14,
+      39,    40,    41,     0,    13,     0,     0,    35,    34,    37,
+       0,     0,    28,     0,     0,     0,     0,     0,    38,    43,
+       8,    42,    15,    12,    16,    36
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -34,    39,   -34,   -34,   -34,   -34,   -34,   -34,   -34,     1,
-     -33,    36,   -34,   -34,   -34,    -6,    -3
+     -40,    63,   -40,   -40,   -40,   -40,    16,   -40,   -39,   -40,
+     -40,   -40,   -40,    -6,   -20,   -12
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-       0,     8,     9,    19,    10,    11,    12,    13,    22,    45,
-      32,    33,    51,    61,    38,    46,    39
+       0,    10,    11,    12,    13,    14,    26,    27,    46,    58,
+      69,    78,    51,    62,    63,    52
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -629,55 +663,61 @@ static const yytype_int8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-      16,    20,     1,     2,     3,     4,     5,     6,     7,    55,
-      21,    43,    44,    14,    58,    59,    25,    26,    27,    28,
-      23,    29,    17,    18,    30,    49,    50,    24,    31,    34,
-      35,    37,    40,    42,    41,    47,    60,    48,    53,    52,
-      57,    54,    68,    56,    63,    65,    66,    67,    15,    62,
-      64,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,    36
+      49,     1,     2,     3,     4,     5,     6,     7,     8,    24,
+      64,    36,    37,    38,    39,     9,    53,    54,    55,    56,
+      57,    65,    25,    15,    16,    19,    75,    76,    17,    18,
+      20,    21,    60,    61,    67,    68,    22,    28,    29,    30,
+      31,    32,    33,    34,    24,    40,    35,    45,    41,    48,
+      50,    44,    72,    81,    42,    43,    47,    59,    79,     0,
+       0,     0,    77,    71,     0,    70,    74,    73,    80,    82,
+      83,    66,    84,    85,    23
 };
 
 static const yytype_int8 yycheck[] =
 {
-       5,     5,    16,    17,    18,    19,    20,    21,    22,    42,
-      14,     3,     4,     0,    47,    48,    23,    24,    25,    26,
-      13,    10,    27,    28,    13,     8,     9,     5,     5,    10,
-       5,     5,    12,    15,    13,    23,     6,    23,    11,    15,
-      11,    40,     7,    15,    13,    13,    13,    13,     9,    52,
-      56,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
-      -1,    -1,    -1,    -1,    28
+      39,    20,    21,    22,    23,    24,    25,    26,    27,     5,
+      17,    28,    29,    30,    31,    34,     6,     7,     8,     9,
+      10,    28,    18,    32,    33,     5,    65,    66,    32,    33,
+      35,    36,     3,     4,    11,    12,     0,     5,     5,     5,
+       5,    17,    17,    17,     5,    15,    19,     5,    17,     5,
+       5,    35,    58,    73,    17,    17,    15,    17,    70,    -1,
+      -1,    -1,    13,    16,    -1,    19,    16,    19,    17,    17,
+      17,    28,    17,    14,    11
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,    16,    17,    18,    19,    20,    21,    22,    30,    31,
-      33,    34,    35,    36,     0,    30,     5,    27,    28,    32,
-       5,    14,    37,    13,     5,    23,    24,    25,    26,    10,
-      13,     5,    39,    40,    10,     5,    40,     5,    43,    45,
-      12,    13,    15,     3,     4,    38,    44,    23,    23,     8,
-       9,    41,    15,    11,    38,    39,    15,    11,    39,    39,
-       6,    42,    45,    13,    44,    13,    13,    13,     7
+       0,    20,    21,    22,    23,    24,    25,    26,    27,    34,
+      38,    39,    40,    41,    42,    32,    33,    32,    33,     5,
+      35,    36,     0,    38,     5,    18,    43,    44,     5,     5,
+       5,     5,    17,    17,    17,    19,    28,    29,    30,    31,
+      15,    17,    17,    17,    43,     5,    45,    15,     5,    45,
+       5,    49,    52,     6,     7,     8,     9,    10,    46,    17,
+       3,     4,    50,    51,    17,    28,    28,    11,    12,    47,
+      19,    16,    50,    19,    16,    45,    45,    13,    48,    52,
+      17,    51,    17,    17,    17,    14
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    29,    30,    30,    31,    31,    32,    32,    33,    33,
-      33,    34,    34,    34,    35,    35,    35,    35,    36,    36,
-      36,    36,    37,    37,    38,    38,    39,    39,    40,    41,
-      41,    42,    43,    43,    44,    44,    45,    45
+       0,    37,    38,    38,    39,    39,    39,    40,    40,    40,
+      40,    40,    41,    41,    41,    41,    41,    41,    41,    42,
+      42,    42,    42,    42,    43,    43,    44,    44,    45,    46,
+      46,    46,    46,    46,    47,    47,    48,    49,    49,    50,
+      50,    51,    51,    52,    52
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     1,     2,     1,     1,     1,     1,     4,     7,
-       3,     1,     1,     1,     7,     5,     7,     7,     1,     1,
-       1,     1,     1,     1,     1,     1,     1,     3,     3,     1,
-       1,     2,     2,     3,     1,     3,     3,     1
+       0,     2,     1,     2,     1,     1,     1,     4,     7,     4,
+       4,     3,     7,     5,     5,     7,     7,     3,     3,     1,
+       1,     1,     1,     1,     1,     3,     1,     1,     3,     1,
+       1,     1,     1,     1,     1,     1,     2,     2,     3,     1,
+       1,     1,     3,     3,     1
 };
 
 
@@ -1140,188 +1180,320 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
+  case 3: /* FINAL: OPE FINAL  */
+#line 71 "syntax.y"
+               {}
+#line 1187 "syntax.tab.c"
+    break;
+
   case 4: /* OPE: DDL  */
-#line 28 "syntax.y"
-        {printf("DDL\n");}
-#line 1147 "syntax.tab.c"
+#line 73 "syntax.y"
+        {}
+#line 1193 "syntax.tab.c"
     break;
 
   case 5: /* OPE: DML  */
-#line 29 "syntax.y"
-        {printf("DML\n");}
-#line 1153 "syntax.tab.c"
-    break;
-
-  case 6: /* SPE_STRU: N_TABLE  */
-#line 31 "syntax.y"
-                 {}
-#line 1159 "syntax.tab.c"
-    break;
-
-  case 7: /* SPE_STRU: N_DATABASE  */
-#line 32 "syntax.y"
-                    {printf("b\n");}
-#line 1165 "syntax.tab.c"
-    break;
-
-  case 8: /* DDL: DDL_OP SPE_STRU ID Y_SEMICOLON  */
-#line 34 "syntax.y"
-                                   {}
-#line 1171 "syntax.tab.c"
-    break;
-
-  case 9: /* DDL: DDL_OP SPE_STRU ID Y_LPAR INLIST Y_RPAR Y_SEMICOLON  */
-#line 35 "syntax.y"
-                                                        {}
-#line 1177 "syntax.tab.c"
-    break;
-
-  case 10: /* DDL: DDL_OP ID Y_SEMICOLON  */
-#line 36 "syntax.y"
-                          {}
-#line 1183 "syntax.tab.c"
-    break;
-
-  case 11: /* DDL_OP: OP_CREATE  */
-#line 38 "syntax.y"
-                 {printf("a\n");}
-#line 1189 "syntax.tab.c"
-    break;
-
-  case 12: /* DDL_OP: OP_USE  */
-#line 39 "syntax.y"
-              {}
-#line 1195 "syntax.tab.c"
-    break;
-
-  case 13: /* DDL_OP: OP_DROP  */
-#line 40 "syntax.y"
-               {printf("a\n");}
-#line 1201 "syntax.tab.c"
-    break;
-
-  case 14: /* DML: DML_OP DML_OBJ S_FROM ID OP_S_WHERE CONDITIONS Y_SEMICOLON  */
-#line 42 "syntax.y"
-                                                              {}
-#line 1207 "syntax.tab.c"
-    break;
-
-  case 15: /* DML: DML_OP DML_OBJ OP_S_WHERE CONDITIONS Y_SEMICOLON  */
-#line 43 "syntax.y"
-                                                    {}
-#line 1213 "syntax.tab.c"
-    break;
-
-  case 16: /* DML: DML_OP DML_OBJ S_VALUES_ASSIS Y_LPAR DATALIST Y_RPAR Y_SEMICOLON  */
-#line 44 "syntax.y"
-                                                                    {}
-#line 1219 "syntax.tab.c"
-    break;
-
-  case 17: /* DML: DML_OP DML_OBJ S_SET CONDITION OP_S_WHERE CONDITIONS Y_SEMICOLON  */
-#line 45 "syntax.y"
-                                                                    {}
-#line 1225 "syntax.tab.c"
-    break;
-
-  case 18: /* DML_OP: OP_INSERT  */
-#line 47 "syntax.y"
-                 {}
-#line 1231 "syntax.tab.c"
-    break;
-
-  case 19: /* DML_OP: OP_UPDATE  */
-#line 48 "syntax.y"
-                 {}
-#line 1237 "syntax.tab.c"
-    break;
-
-  case 20: /* DML_OP: OP_DELETE  */
-#line 49 "syntax.y"
-                 {}
-#line 1243 "syntax.tab.c"
-    break;
-
-  case 21: /* DML_OP: OP_SELECT  */
-#line 50 "syntax.y"
-                 {}
-#line 1249 "syntax.tab.c"
-    break;
-
-  case 22: /* DML_OBJ: ID  */
-#line 52 "syntax.y"
-           {}
-#line 1255 "syntax.tab.c"
-    break;
-
-  case 23: /* DML_OBJ: Y_ALL  */
-#line 53 "syntax.y"
-              {}
-#line 1261 "syntax.tab.c"
-    break;
-
-  case 24: /* DATA: num_INT  */
-#line 55 "syntax.y"
-             {}
-#line 1267 "syntax.tab.c"
-    break;
-
-  case 25: /* DATA: data_STRING  */
-#line 56 "syntax.y"
-                 {printf("a\n");}
-#line 1273 "syntax.tab.c"
-    break;
-
-  case 28: /* CONDITION: ID Y_EQ DATA  */
-#line 61 "syntax.y"
-                       {}
-#line 1279 "syntax.tab.c"
-    break;
-
-  case 29: /* TYPE: Y_INT  */
-#line 63 "syntax.y"
-           {}
-#line 1285 "syntax.tab.c"
-    break;
-
-  case 30: /* TYPE: Y_STRING  */
-#line 64 "syntax.y"
-              {}
-#line 1291 "syntax.tab.c"
-    break;
-
-  case 31: /* KEY: KEY_type KEY_symbol  */
-#line 66 "syntax.y"
-                        {printf("KEY_\n");}
-#line 1297 "syntax.tab.c"
-    break;
-
-  case 32: /* DATASET: ID TYPE  */
-#line 68 "syntax.y"
-                {}
-#line 1303 "syntax.tab.c"
-    break;
-
-  case 33: /* DATASET: ID TYPE KEY  */
-#line 69 "syntax.y"
-                    {}
-#line 1309 "syntax.tab.c"
-    break;
-
-  case 36: /* INLIST: DATASET Y_COMMA INLIST  */
 #line 74 "syntax.y"
-                              {}
-#line 1315 "syntax.tab.c"
+        {}
+#line 1199 "syntax.tab.c"
     break;
 
-  case 37: /* INLIST: DATASET  */
+  case 6: /* OPE: EXIT  */
 #line 75 "syntax.y"
-               {}
-#line 1321 "syntax.tab.c"
+         {exitDB();}
+#line 1205 "syntax.tab.c"
+    break;
+
+  case 7: /* DDL: OP_CREATE N_DATABASE ID Y_SEMICOLON  */
+#line 77 "syntax.y"
+                                        {createDB((yyvsp[-1].str));}
+#line 1211 "syntax.tab.c"
+    break;
+
+  case 8: /* DDL: OP_CREATE N_TABLE ID Y_LPAR INLIST Y_RPAR Y_SEMICOLON  */
+#line 78 "syntax.y"
+                                                          {
+                                                        createTB((yyvsp[-4].str),(yyvsp[-2].init_list), typeSize);
+                                                        for (int i = 0; i < typeSize; ++i) {
+                                                            free(TypeVector[i]->name); // 释放每个元素指向的内存
+                                                            free(TypeVector[i]); // 释放每个元素指向的内存
+                                                        }
+                                                        free(TypeVector); // 释放数组本身
+                                                        TypeVector = NULL; // 避免悬挂指针
+                                                        typeSize = 0;
+                                                        }
+#line 1226 "syntax.tab.c"
+    break;
+
+  case 9: /* DDL: OP_DROP N_DATABASE ID Y_SEMICOLON  */
+#line 88 "syntax.y"
+                                      {dropDB((yyvsp[-1].str));}
+#line 1232 "syntax.tab.c"
+    break;
+
+  case 10: /* DDL: OP_DROP N_TABLE ID Y_SEMICOLON  */
+#line 89 "syntax.y"
+                                   {dropTB((yyvsp[-1].str));}
+#line 1238 "syntax.tab.c"
+    break;
+
+  case 11: /* DDL: OP_USE ID Y_SEMICOLON  */
+#line 90 "syntax.y"
+                          {useDB((yyvsp[-1].str));}
+#line 1244 "syntax.tab.c"
+    break;
+
+  case 12: /* DML: DML_OP DML_OBJ S_FROM ID OP_S_WHERE CONDITION Y_SEMICOLON  */
+#line 92 "syntax.y"
+                                                             {
+                                                            selectFromTB((yyvsp[-5].column_list),(yyvsp[-3].str),&(yyvsp[-1].condition),size);
+                                                            for (int i = 0; i < size; ++i) {
+                                                                free(ColumnVector[i]); // 释放每个元素指向的内存
+                                                            }
+                                                            free(ColumnVector); // 释放数组本身
+                                                            ColumnVector = NULL; // 避免悬挂指针
+                                                            size = 0;
+                                                            }
+#line 1258 "syntax.tab.c"
+    break;
+
+  case 13: /* DML: DML_OP DML_OBJ S_FROM ID Y_SEMICOLON  */
+#line 101 "syntax.y"
+                                        {
+                            selectFromTB((yyvsp[-3].column_list),(yyvsp[-1].str),NULL,size);
+                            for (int i = 0; i < size; ++i) {
+                                free(ColumnVector[i]); // 释放每个元素指向的内存
+                            }
+                            free(ColumnVector); // 释放数组本身
+                            ColumnVector = NULL; // 避免悬挂指针
+                            size = 0;
+                            }
+#line 1272 "syntax.tab.c"
+    break;
+
+  case 14: /* DML: DML_OP DML_OBJ OP_S_WHERE CONDITION Y_SEMICOLON  */
+#line 110 "syntax.y"
+                                                   {deleteFromTB((yyvsp[-3].column_list)[0],&(yyvsp[-1].condition));}
+#line 1278 "syntax.tab.c"
+    break;
+
+  case 15: /* DML: DML_OP DML_OBJ S_VALUES_ASSIS Y_LPAR DATALIST Y_RPAR Y_SEMICOLON  */
+#line 111 "syntax.y"
+                                                                    {
+                                                            insertIntoTB((yyvsp[-5].column_list)[0],(yyvsp[-2].data_list),dataSize);
+                                                            for (int i = 0; i < dataSize; ++i) {
+                                                                free(DataVector[i]); // 释放每个元素指向的内存
+                                                            }
+                                                            free(DataVector); // 释放数组本身
+                                                            DataVector = NULL; // 避免悬挂指针
+                                                            dataSize = 0;
+                                                            }
+#line 1292 "syntax.tab.c"
+    break;
+
+  case 16: /* DML: DML_OP DML_OBJ S_SET CONDITION OP_S_WHERE CONDITION Y_SEMICOLON  */
+#line 120 "syntax.y"
+                                                                   {updateTB((yyvsp[-5].column_list)[0],&(yyvsp[-3].condition),&(yyvsp[-1].condition));}
+#line 1298 "syntax.tab.c"
+    break;
+
+  case 17: /* DML: OP_SHOW N_DATABASES Y_SEMICOLON  */
+#line 121 "syntax.y"
+                                    {showDB();}
+#line 1304 "syntax.tab.c"
+    break;
+
+  case 18: /* DML: OP_SHOW N_TABLES Y_SEMICOLON  */
+#line 122 "syntax.y"
+                                 {showTB();}
+#line 1310 "syntax.tab.c"
+    break;
+
+  case 24: /* COLUMN_LIST: ID  */
+#line 130 "syntax.y"
+               {
+                ColumnVector = (char**)realloc(ColumnVector, sizeof(char*) * (size + 1));
+                ColumnVector[size++] = strdup((yyvsp[0].str));
+                (yyval.column_list) = ColumnVector;
+            }
+#line 1320 "syntax.tab.c"
+    break;
+
+  case 25: /* COLUMN_LIST: ID Y_COMMA COLUMN_LIST  */
+#line 135 "syntax.y"
+                                   {
+                ColumnVector = (char**)realloc(ColumnVector, sizeof(char*) * (size + 1));
+                ColumnVector[size++] = strdup((yyvsp[-2].str));
+                (yyval.column_list) = ColumnVector;
+            }
+#line 1330 "syntax.tab.c"
+    break;
+
+  case 26: /* DML_OBJ: COLUMN_LIST  */
+#line 142 "syntax.y"
+                    {(yyval.column_list) = (yyvsp[0].column_list);}
+#line 1336 "syntax.tab.c"
+    break;
+
+  case 27: /* DML_OBJ: Y_ALL  */
+#line 143 "syntax.y"
+              {(yyval.column_list) = NULL;}
+#line 1342 "syntax.tab.c"
+    break;
+
+  case 28: /* CONDITION: ID RELATION_OP DATA  */
+#line 146 "syntax.y"
+                              {condition.name = (char*)malloc(strlen((yyvsp[-2].str)) + 1);strcpy(condition.name, (yyvsp[-2].str));condition.relation_op = (yyvsp[-1].relation_op);condition.data = (yyvsp[0].data);(yyval.condition) = condition;
+                                // printf("condition.name:%s\n",condition.name);
+                                //printf("$1:%s\n",$1);
+                                }
+#line 1351 "syntax.tab.c"
+    break;
+
+  case 29: /* RELATION_OP: Y_EQ  */
+#line 151 "syntax.y"
+                 {(yyval.relation_op) = EQ;}
+#line 1357 "syntax.tab.c"
+    break;
+
+  case 30: /* RELATION_OP: Y_GREAT  */
+#line 152 "syntax.y"
+                    {(yyval.relation_op) = GREAT;}
+#line 1363 "syntax.tab.c"
+    break;
+
+  case 31: /* RELATION_OP: Y_GREATEQ  */
+#line 153 "syntax.y"
+                      {(yyval.relation_op) = GREATEQ;}
+#line 1369 "syntax.tab.c"
+    break;
+
+  case 32: /* RELATION_OP: Y_LESS  */
+#line 154 "syntax.y"
+                   {(yyval.relation_op) = LESS;}
+#line 1375 "syntax.tab.c"
+    break;
+
+  case 33: /* RELATION_OP: Y_LESSEQ  */
+#line 155 "syntax.y"
+                     {(yyval.relation_op) = LESSEQ;}
+#line 1381 "syntax.tab.c"
+    break;
+
+  case 34: /* TYPE: Y_INT  */
+#line 157 "syntax.y"
+           {(yyval.ivalue) = 0;}
+#line 1387 "syntax.tab.c"
+    break;
+
+  case 35: /* TYPE: Y_STRING  */
+#line 158 "syntax.y"
+              {(yyval.ivalue) = 1;}
+#line 1393 "syntax.tab.c"
+    break;
+
+  case 37: /* INITSET: ID TYPE  */
+#line 162 "syntax.y"
+                {
+        init.name = (char*)malloc(sizeof(strlen((yyvsp[-1].str)) + 1));
+        strcpy(init.name,(yyvsp[-1].str));
+        init.flag=0;init.type=(yyvsp[0].ivalue);
+        (yyval.init) = init;
+    }
+#line 1404 "syntax.tab.c"
+    break;
+
+  case 38: /* INITSET: ID TYPE KEY  */
+#line 168 "syntax.y"
+                    {
+        init.name = (char*)malloc(sizeof(strlen((yyvsp[-2].str)) + 1));
+        strcpy(init.name,(yyvsp[-2].str));
+        init.flag=1;init.type=(yyvsp[-1].ivalue);
+        (yyval.init) = init;
+    }
+#line 1415 "syntax.tab.c"
+    break;
+
+  case 39: /* DATA: num_INT  */
+#line 175 "syntax.y"
+             {data.data.num_int = (yyvsp[0].ivalue);data.flag = 0;(yyval.data) = data;}
+#line 1421 "syntax.tab.c"
+    break;
+
+  case 40: /* DATA: data_STRING  */
+#line 176 "syntax.y"
+                 {strcpy(data.data.str_data,(yyvsp[0].str));data.flag = 1;(yyval.data) = data;}
+#line 1427 "syntax.tab.c"
+    break;
+
+  case 41: /* DATALIST: DATA  */
+#line 178 "syntax.y"
+              {
+            DataVector = (struct Data_Type**)realloc(DataVector, sizeof(struct Data_Type*) * (dataSize + 1));
+            
+            DataVector[dataSize] = (struct Data_Type*)malloc(sizeof(struct Data_Type));
+            // printf("111");
+            DataVector[dataSize]->data = (yyvsp[0].data).data;
+            // DataVector[dataSize]->name = (char*)malloc(strlen($1.name) + 1);
+            // strcpy(DataVector[dataSize]->name,$1.name);
+            DataVector[dataSize]->flag = (yyvsp[0].data).flag;
+            dataSize++; 
+            (yyval.data_list) = DataVector;
+            // printf("2%s\n",DataVector[dataSize-1]->name);
+        }
+#line 1445 "syntax.tab.c"
+    break;
+
+  case 42: /* DATALIST: DATA Y_COMMA DATALIST  */
+#line 191 "syntax.y"
+                               {
+            DataVector = (struct Data_Type**)realloc(DataVector, sizeof(struct Data_Type*) * (dataSize + 1));
+            
+            DataVector[dataSize] = (struct Data_Type*)malloc(sizeof(struct Data_Type));
+            // printf("111");
+            DataVector[dataSize]->data = (yyvsp[-2].data).data;
+            // DataVector[dataSize]->name = (char*)malloc(strlen($1.name) + 1);
+            // strcpy(DataVector[dataSize]->name,$1.name);
+            DataVector[dataSize]->flag = (yyvsp[-2].data).flag;
+            dataSize++; 
+            (yyval.data_list) = DataVector;
+            // printf("2%s\n",DataVector[dataSize-1]->name);
+        }
+#line 1463 "syntax.tab.c"
+    break;
+
+  case 43: /* INLIST: INITSET Y_COMMA INLIST  */
+#line 205 "syntax.y"
+                              {
+            TypeVector = (struct Init_List**)realloc(TypeVector, sizeof(struct Init_List*) * (typeSize + 1));
+            TypeVector[typeSize] = (struct Init_List*)malloc(sizeof(struct Init_List));
+            TypeVector[typeSize]->name = (char*)malloc(strlen((yyvsp[-2].init).name) + 1);
+            strcpy(TypeVector[typeSize]->name,(yyvsp[-2].init).name);
+            TypeVector[typeSize]->flag = (yyvsp[-2].init).flag;
+            TypeVector[typeSize]->type = (yyvsp[-2].init).type;
+            typeSize++;
+            (yyval.init_list) = TypeVector;
+        }
+#line 1478 "syntax.tab.c"
+    break;
+
+  case 44: /* INLIST: INITSET  */
+#line 215 "syntax.y"
+               {
+            TypeVector = (struct Init_List**)realloc(TypeVector, sizeof(struct Init_List*) * (typeSize + 1));
+            TypeVector[typeSize] = (struct Init_List*)malloc(sizeof(struct Init_List));
+            TypeVector[typeSize]->name = (char*)malloc(strlen((yyvsp[0].init).name) + 1);
+            strcpy(TypeVector[typeSize]->name,(yyvsp[0].init).name);
+            TypeVector[typeSize]->flag = (yyvsp[0].init).flag;
+            TypeVector[typeSize]->type = (yyvsp[0].init).type;
+            typeSize++;
+            (yyval.init_list) = TypeVector;
+        }
+#line 1493 "syntax.tab.c"
     break;
 
 
-#line 1325 "syntax.tab.c"
+#line 1497 "syntax.tab.c"
 
       default: break;
     }
@@ -1514,5 +1686,5 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 76 "syntax.y"
+#line 226 "syntax.y"
 

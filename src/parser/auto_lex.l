@@ -3,10 +3,14 @@
     #include "stdlib.h"
     #include "string.h"
     #include "syntax.tab.h"
-    
-    
+    #include "DATA.h"
+
+    //[Ee][Xx][Ii][Tt] { return OP_EXIT; }
+    //[Ss][Hh][Oo][Ww] { return OP_SHOW;}
+    int yyparse();
 %}
 
+newline \n
 white [\n\t ]
 ID [a-zA-Z]+
 /* DATA_STR [a-zA-Z_0-9\,\.\+-=; ]+ */
@@ -14,53 +18,61 @@ INT [\+-]?[1-9][0-9]*
 
 
 %%
+{newline} {printf("yoursql> ");}
 {white} {}
-{INT} {printf("%d\n",atoi(yytext));return num_INT;}
-[\+-]?0 {printf("%d\n",atoi(yytext));return num_INT;}
+{INT} {yylval.ivalue = atoi(yytext);return num_INT;}
+[\+-]?0 {yylval.ivalue = 0;return num_INT;}
+[Ss][Ee][Ll][Ee][Cc][Tt] { return OP_SELECT; }
+[Ii][Nn][Ss][Ee][Rr][Tt] { return OP_INSERT; }
+[Uu][Pp][Dd][Aa][Tt][Ee] { return OP_UPDATE; }
+[Dd][Ee][Ll][Ee][Tt][Ee] { return OP_DELETE; }
+[Cc][Rr][Ee][Aa][Tt][Ee] { return OP_CREATE; }
+[Dd][Rr][Oo][Pp] { return OP_DROP; }
+[Uu][Ss][Ee] { return OP_USE; }
+[Ww][Hh][Ee][Rr][Ee] { return OP_S_WHERE; }
+[Vv][Aa][Ll][Uu][Ee][Ss] { return S_VALUES_ASSIS; }
+[Ff][Rr][Oo][Mm] { return S_FROM; }
+[Ss][Ee][Tt] { return S_SET; }
+[Tt][Aa][Bb][Ll][Ee] { return N_TABLE; }
+[Dd][Aa][Tt][Aa][Bb][Aa][Ss][Ee] { return N_DATABASE; }
+
+[Ee][Xx][Ii][Tt] { return EXIT; }
+[Ss][Hh][Oo][Ww] { return OP_SHOW;}
+[Tt][Aa][Bb][Ll][Ee][Ss] { return N_TABLES; }
+[Dd][Aa][Tt][Aa][Bb][Aa][Ss][Ee][Ss] { return N_DATABASES; }
+
+
+[Pp][Rr][Ii][Mm][Aa][Rr][Yy] { return KEY_type; }
+[Kk][Ee][Yy] { return KEY_symbol; }
+[Ii][Nn][Tt] { return Y_INT; }
+[Vv][Aa][Rr][Cc][Hh][Aa][Rr] { return Y_STRING; }
+"string" { return Y_STRING; }
 {ID} {
-        printf("%s\n",yytext);
-        //数据类型声明
-        if(strcmp(yytext,"INT")==0 || strcmp(yytext,"int") == 0) {return Y_INT;}
-        else if(strcmp(yytext,"VARCHAR")==0 || strcmp(yytext,"varchar")==0 || strcmp(yytext,"string") == 0) {return Y_STRING;}
-        //DDL
-        else if(strcmp(yytext,"create")==0 || strcmp(yytext,"CREATE") == 0) {return OP_CREATE;}
-        else if(strcmp(yytext,"drop")==0 || strcmp(yytext,"DROP") == 0) {return OP_DROP;}
-        else if(strcmp(yytext,"use")==0 || strcmp(yytext,"USE") == 0) {return OP_USE;}
-        //DML
-        else if(strcmp(yytext,"select")==0 || strcmp(yytext,"SELECT") == 0) {return OP_SELECT;}
-        else if(strcmp(yytext,"delete")==0 || strcmp(yytext,"DELETE") == 0) {return OP_DELETE;}
-        else if(strcmp(yytext,"insert")==0 || strcmp(yytext,"INSERT") == 0) {return OP_INSERT;}
-        else if(strcmp(yytext,"update")==0 || strcmp(yytext,"UPDATE") == 0) {return OP_UPDATE;}
-        //assistance
-        else if(strcmp(yytext,"where")==0 || strcmp(yytext,"WHERE") == 0) {return OP_S_WHERE;}
-        else if(strcmp(yytext,"values")==0 || strcmp(yytext,"VALUES") == 0) {return S_VALUES_ASSIS;}
-        else if(strcmp(yytext,"from")==0 || strcmp(yytext,"FROM") == 0) {return S_FROM;}
-        else if(strcmp(yytext,"set")==0 || strcmp(yytext,"SET") == 0) {return S_SET;}
-        //specific name
-        else if(strcmp(yytext,"table")==0 || strcmp(yytext,"TABLE") == 0) {return N_TABLE;}
-        else if(strcmp(yytext,"database")==0 || strcmp(yytext,"DATABASE") == 0) {return N_DATABASE;}
-        else if(strcmp(yytext,"exit")==0 || strcmp(yytext,"EXIT") == 0) {printf("监测到退出提示,退出整个程序\n");exit(0);}
-        else if(strcmp(yytext,"primary")==0 || strcmp(yytext,"PRIMARY") == 0){return KEY_type;}
-        else if(strcmp(yytext,"key")==0 || strcmp(yytext,"KEY") == 0){return KEY_symbol;}
-        else return ID;
+    yylval.str = strdup(yytext); 
+    return ID; 
     }
 
 
 
-"\""+.+"\"" {printf("%s\n",yytext);return data_STRING;}
-"(" {printf("%s\n",yytext);return Y_LPAR;}
-")" {printf("%s\n",yytext);return Y_RPAR;}
-";" {printf("%s\n",yytext);return Y_SEMICOLON;}
+"\""+.+"\"" {return data_STRING;}
+"(" {return Y_LPAR;}
+")" {return Y_RPAR;}
+";" {return Y_SEMICOLON;}
 "-- "+.+\n {printf("注释:%s\n",yytext);}
-"*" {printf("%s\n",yytext);return Y_ALL;}
-"=" {printf("%s\n",yytext);return Y_EQ;}
-"," {printf("%s\n",yytext);return Y_COMMA;}
+"*" {return Y_ALL;}
+"=" {return Y_EQ;}
+"," {return Y_COMMA;}
+">=" {return Y_GREATEQ;}
+"<=" {return Y_LESSEQ;}
+">" {return Y_GREAT;}
+"<" {return Y_LESS;}
 
 
 %%
 
 void yyerror(char *str){
     fprintf(stderr,"error:%s\n",str);
+    yyparse();
 }
 
 int yywrap(){

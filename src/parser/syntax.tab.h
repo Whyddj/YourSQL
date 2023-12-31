@@ -44,6 +44,17 @@
 #if YYDEBUG
 extern int yydebug;
 #endif
+/* "%code requires" blocks.  */
+#line 29 "syntax.y"
+
+    // #include <iostream>
+    // #include <string>
+    // #include <vector>
+    // #include <map>
+    #include "DATA.h"
+    #include "parse_operations.h"
+
+#line 58 "syntax.tab.h"
 
 /* Token kinds.  */
 #ifndef YYTOKENTYPE
@@ -57,29 +68,37 @@ extern int yydebug;
     num_INT = 258,                 /* num_INT  */
     data_STRING = 259,             /* data_STRING  */
     ID = 260,                      /* ID  */
-    KEY_type = 261,                /* KEY_type  */
-    KEY_symbol = 262,              /* KEY_symbol  */
-    Y_STRING = 263,                /* Y_STRING  */
-    Y_INT = 264,                   /* Y_INT  */
-    Y_LPAR = 265,                  /* Y_LPAR  */
-    Y_RPAR = 266,                  /* Y_RPAR  */
-    Y_EQ = 267,                    /* Y_EQ  */
-    Y_SEMICOLON = 268,             /* Y_SEMICOLON  */
-    Y_ALL = 269,                   /* Y_ALL  */
-    Y_COMMA = 270,                 /* Y_COMMA  */
-    OP_CREATE = 271,               /* OP_CREATE  */
-    OP_DROP = 272,                 /* OP_DROP  */
-    OP_USE = 273,                  /* OP_USE  */
-    OP_SELECT = 274,               /* OP_SELECT  */
-    OP_DELETE = 275,               /* OP_DELETE  */
-    OP_INSERT = 276,               /* OP_INSERT  */
-    OP_UPDATE = 277,               /* OP_UPDATE  */
-    OP_S_WHERE = 278,              /* OP_S_WHERE  */
-    S_VALUES_ASSIS = 279,          /* S_VALUES_ASSIS  */
-    S_FROM = 280,                  /* S_FROM  */
-    S_SET = 281,                   /* S_SET  */
-    N_TABLE = 282,                 /* N_TABLE  */
-    N_DATABASE = 283               /* N_DATABASE  */
+    Y_EQ = 261,                    /* Y_EQ  */
+    Y_GREAT = 262,                 /* Y_GREAT  */
+    Y_GREATEQ = 263,               /* Y_GREATEQ  */
+    Y_LESS = 264,                  /* Y_LESS  */
+    Y_LESSEQ = 265,                /* Y_LESSEQ  */
+    Y_STRING = 266,                /* Y_STRING  */
+    Y_INT = 267,                   /* Y_INT  */
+    KEY_type = 268,                /* KEY_type  */
+    KEY_symbol = 269,              /* KEY_symbol  */
+    Y_LPAR = 270,                  /* Y_LPAR  */
+    Y_RPAR = 271,                  /* Y_RPAR  */
+    Y_SEMICOLON = 272,             /* Y_SEMICOLON  */
+    Y_ALL = 273,                   /* Y_ALL  */
+    Y_COMMA = 274,                 /* Y_COMMA  */
+    OP_CREATE = 275,               /* OP_CREATE  */
+    OP_DROP = 276,                 /* OP_DROP  */
+    OP_USE = 277,                  /* OP_USE  */
+    OP_SELECT = 278,               /* OP_SELECT  */
+    OP_DELETE = 279,               /* OP_DELETE  */
+    OP_INSERT = 280,               /* OP_INSERT  */
+    OP_UPDATE = 281,               /* OP_UPDATE  */
+    OP_SHOW = 282,                 /* OP_SHOW  */
+    OP_S_WHERE = 283,              /* OP_S_WHERE  */
+    S_VALUES_ASSIS = 284,          /* S_VALUES_ASSIS  */
+    S_FROM = 285,                  /* S_FROM  */
+    S_SET = 286,                   /* S_SET  */
+    N_TABLE = 287,                 /* N_TABLE  */
+    N_DATABASE = 288,              /* N_DATABASE  */
+    EXIT = 289,                    /* EXIT  */
+    N_TABLES = 290,                /* N_TABLES  */
+    N_DATABASES = 291              /* N_DATABASES  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -88,12 +107,19 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 9 "syntax.y"
+#line 38 "syntax.y"
 
+    char** column_list;
+    struct Data_Type** data_list;
+    struct Init_List** init_list;
+    struct Data_Type data;
+    struct Init_List init;
+    struct Condition condition;
+    enum Relation relation_op;
     int ivalue;
-    char str[256];
+    char *str;
 
-#line 97 "syntax.tab.h"
+#line 123 "syntax.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
